@@ -1,4 +1,4 @@
-# monde — a toy world for testing when a continual world model should revise itself
+# World1 — a toy world for testing when a continual world model should revise itself
 
 A continuous, noisy, nonlinear toy world with **hidden drift** and **graded, irreversible damage**.
 It is the testbed (checklist, stage 0, section 1) of a research project on *what should trigger the
@@ -25,7 +25,7 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 
 ## Use
 
-    from monde import make_env
+    from World1 import make_env
 
     env = make_env("R2c", seed=0, n_episodes=20)     # R0, R1, R2d, R2c, R2l, R3d, R3c, R3l
     obs, info = env.reset(seed=0, options={"new_run": True})
@@ -47,13 +47,13 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 
 | Path | Content |
 |---|---|
-| `monde/config.py` | frozen world parameters (`WorldConfig`) |
-| `monde/world.py` | the Gymnasium environment `ToyWorld` |
-| `monde/drift.py` | three drift wrappers: `DynamicsDrift`, `CostDrift`, `LatencyDrift` |
-| `monde/regimes.py` | the 8-cell regime grid and `make_env` |
-| `monde/policies.py` | scripted crosser (frozen reference agent) and damage-free retreat |
-| `monde/evaluate.py` | `run_frozen`: runs the frozen agent and collects ground-truth residuals |
-| `monde/journal.py` | `TruthLogger`: per-episode ground-truth journal |
+| `World1/config.py` | frozen world parameters (`WorldConfig`) |
+| `World1/world.py` | the Gymnasium environment `ToyWorld` |
+| `World1/drift.py` | three drift wrappers: `DynamicsDrift`, `CostDrift`, `LatencyDrift` |
+| `World1/regimes.py` | the 8-cell regime grid and `make_env` |
+| `World1/policies.py` | scripted crosser (frozen reference agent) and damage-free retreat |
+| `World1/evaluate.py` | `run_frozen`: runs the frozen agent and collects ground-truth residuals |
+| `World1/journal.py` | `TruthLogger`: per-episode ground-truth journal |
 | `tests/` | 28 tests: dynamics, geometry, damage, retreat, leaks, every regime |
 | `scripts/` | calibration of `D`, exploration of the regimes |
 | `docs/` | research design, world specification, regimes and results, status |
