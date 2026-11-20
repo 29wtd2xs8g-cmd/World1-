@@ -1,5 +1,5 @@
 """Measure C1 (damage of a direct crossing through opening A, no drift) and propose D = 2 * C1.
-Run once, then copy D into monde/config.py before any experiment (checklist 0.2).
+Run once, then copy D into toyworld/config.py before any experiment (checklist 0.2).
 Usage: PYTHONPATH=. python scripts/calibrate.py"""
 import numpy as np
 from World import WorldConfig

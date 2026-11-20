@@ -4,12 +4,12 @@
 
 | Checklist item | Where |
 |---|---|
-| 1.1 toy world | `monde/world.py`, `monde/config.py` |
-| 1.2 three drift wrappers | `monde/drift.py` |
-| 1.3 verify every regime with a frozen agent | `monde/regimes.py`, `monde/evaluate.py`, `tests/test_regimes.py` |
-| 1.4 graded damage, failure at `D` | `monde/world.py`, `tests/test_toyworld.py` |
-| 1.5 damage-free retreat | `monde/policies.py::retreat_action`, retreat tests |
-| 1.6 ground-truth journal | `monde/journal.py` (`TruthLogger`) |
+| 1.1 toy world | `toyworld/world.py`, `toyworld/config.py` |
+| 1.2 three drift wrappers | `toyworld/drift.py` |
+| 1.3 verify every regime with a frozen agent | `toyworld/regimes.py`, `toyworld/evaluate.py`, `tests/test_regimes.py` |
+| 1.4 graded damage, failure at `D` | `toyworld/world.py`, `tests/test_toyworld.py` |
+| 1.5 damage-free retreat | `toyworld/policies.py::retreat_action`, retreat tests |
+| 1.6 ground-truth journal | `toyworld/journal.py` (`TruthLogger`) |
 
 Also done: paired seeded noise; leak tests; `D` calibrated (`scripts/calibrate.py`); proportional
 timing of drift (`n_episodes` scales `tau` and ramp durations); 28 tests passing.

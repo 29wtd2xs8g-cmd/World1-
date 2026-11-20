@@ -10,9 +10,9 @@ from functools import lru_cache
 import numpy as np
 import pytest
 
-from monde import WorldConfig
-from monde.evaluate import run_frozen
-from monde.regimes import REGIMES, make_env
+from toyworld import WorldConfig
+from toyworld.evaluate import run_frozen
+from toyworld.regimes import REGIMES, make_env
 
 CFG = WorldConfig()
 SEEDS = range(12)
@@ -146,7 +146,7 @@ def test_R3l_not_maskable_with_this_agent():
 
 # ------------------------------------------------------------------ proportionality to n_episodes
 def test_tau_window_and_durations_are_proportional():
-    from monde.regimes import onset_episode, onset_window
+    from toyworld.regimes import onset_episode, onset_window
     assert onset_window(20) == (5, 10)                         # prototype values unchanged
     assert onset_window(100) == (25, 50)
     assert all(5 <= onset_episode(s, 20) <= 10 for s in range(50))

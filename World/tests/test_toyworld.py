@@ -2,9 +2,9 @@
 import numpy as np
 import pytest
 
-from monde import WorldConfig, make_env
-from monde.policies import ScriptedCrosser, retreat_action
-from monde.world import ToyWorld
+from toyworld import WorldConfig, make_env
+from toyworld.policies import ScriptedCrosser, retreat_action
+from toyworld.world import ToyWorld
 
 
 def quiet(**kw):
@@ -174,7 +174,7 @@ def test_hidden_parameters_do_not_leak_into_the_observation():
 
 
 def test_ground_truth_journal(tmp_path):
-    from monde.journal import TruthLogger
+    from toyworld.journal import TruthLogger
     env = TruthLogger(make_env("R2c", seed=2, n_episodes=2), regime="R2c")
     pol = ScriptedCrosser("A")
     for ep in range(2):

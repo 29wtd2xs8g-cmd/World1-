@@ -1,4 +1,4 @@
-# World1 — a toy world for testing when a continual world model should revise itself
+# toyworld — a toy world for testing when a continual world model should revise itself
 
 A continuous, noisy, nonlinear toy world with **hidden drift** and **graded, irreversible damage**.
 It is the testbed (checklist, stage 0, section 1) of a research project on *what should trigger the

@@ -5,7 +5,7 @@ Eight cells: a control, a harmless surprise, and abrupt/slow harmful drifts in e
 Masking criterion: the one-step residual of the frozen nominal model stays below the noise
 (SNR < 1) at the moment the damage exceeds R0 by X%.
 
-## 1. Cells and exact parameters (as coded in `monde/regimes.py`)
+## 1. Cells and exact parameters (as coded in `toyworld/regimes.py`)
 
 Durations are fractions of `n_episodes`, so the study can scale: at 20 episodes, `tau` in {5..10};
 at 100 episodes, `tau` in {25..50}.

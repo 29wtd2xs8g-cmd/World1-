@@ -1,6 +1,6 @@
 # World specification (checklist 0.3)
 
-The code in `monde/` is authoritative: where this page and an earlier note differ, the code wins.
+The code in `toyworld/` is authoritative: where this page and an earlier note differ, the code wins.
 
 ## 1. Principle
 
@@ -69,7 +69,7 @@ Retreat = cancel the velocity, then return to `x0`. Damage suffered during the r
 | `g`, `r_g`; `x0`, `r0` | goal and success radius; start and clear radius | m | yes |
 | `sigma_o` | observation noise | m, m/s | no |
 
-## 4. Parameter values (frozen in `monde/config.py`)
+## 4. Parameter values (frozen in `toyworld/config.py`)
 
 | Parameter | Value | Note |
 |---|---|---|
