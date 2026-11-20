@@ -2,7 +2,7 @@
 Usage: PYTHONPATH=. python scripts/explore_regimes.py [n_seeds]"""
 import sys
 import numpy as np
-from World.evaluate import run_frozen
+from toyworld.evaluate import run_frozen
 
 SEEDS = range(int(sys.argv[1]) if len(sys.argv) > 1 else 12)
 for reg in ["R0", "R1", "R2d", "R2c", "R2l", "R3d", "R3c", "R3l"]:

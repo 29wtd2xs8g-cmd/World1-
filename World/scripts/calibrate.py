@@ -2,8 +2,8 @@
 Run once, then copy D into toyworld/config.py before any experiment (checklist 0.2).
 Usage: PYTHONPATH=. python scripts/calibrate.py"""
 import numpy as np
-from World import WorldConfig
-from World.evaluate import run_frozen
+from toyworld import WorldConfig
+from toyworld.evaluate import run_frozen
 
 rows = run_frozen("R0", seeds=range(1000, 1050), n_episodes=4, route="A", config=WorldConfig(D=1e9))
 ok = [r["ccum"] for r in rows if r["outcome"] == "success"]

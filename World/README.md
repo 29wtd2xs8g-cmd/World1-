@@ -25,7 +25,7 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 
 ## Use
 
-    from World1 import make_env
+    from toyworld1 import make_env
 
     env = make_env("R2c", seed=0, n_episodes=20)     # R0, R1, R2d, R2c, R2l, R3d, R3c, R3l
     obs, info = env.reset(seed=0, options={"new_run": True})
