@@ -7,7 +7,7 @@
 | 1.1 toy world | `monde/world.py`, `monde/config.py` |
 | 1.2 three drift wrappers | `monde/drift.py` |
 | 1.3 verify every regime with a frozen agent | `monde/regimes.py`, `monde/evaluate.py`, `tests/test_regimes.py` |
-| 1.4 graded damage, failure at `D` | `monde/world.py`, `tests/test_monde.py` |
+| 1.4 graded damage, failure at `D` | `monde/world.py`, `tests/test_toyworld.py` |
 | 1.5 damage-free retreat | `monde/policies.py::retreat_action`, retreat tests |
 | 1.6 ground-truth journal | `monde/journal.py` (`TruthLogger`) |
 
