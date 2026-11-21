@@ -2,9 +2,9 @@
 
 A continuous, noisy, nonlinear toy world with **hidden drift** and **graded, irreversible damage**.
 It is the testbed (checklist, stage 0, section 1) of a research project on *what should trigger the
-revision of a world model*. The agents under study are not in this repository yet: this repository
-contains the world, the three drift mechanisms, the regime grid, the ground-truth journal and the
-tests that verify them.
+revision of a world model*. The trigger agents under study are not in this repository yet: it contains
+the world, the three drift mechanisms, the regime grid, the ground-truth journal, a competent baseline
+agent (learned world model plus planner) and the tests that verify them.
 
 ## The research in one paragraph
 
@@ -19,13 +19,15 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 ## Install and test
 
     pip install -r requirements.txt
-    python -m pytest -q                        # 28 tests, about 20 s
+    python -m pytest -q                        # 38 tests, about 45 s
     PYTHONPATH=. python scripts/calibrate.py   # measures C1 and D = 2*C1
-    PYTHONPATH=. python scripts/explore_regimes.py 12   # frozen agent, 8 regimes, before/after drift
+    PYTHONPATH=. python scripts/explore_regimes.py 12   # scripted agent, 8 regimes, before/after drift
+    PYTHONPATH=. python scripts/train_baseline.py       # pretrains the world model (about 1 min)
+    PYTHONPATH=. python scripts/eval_baseline.py        # competence check before drift (about 5 min)
 
 ## Use
 
-    from toyworld1 import make_env
+    from toyworld import make_env
 
     env = make_env("R2c", seed=0, n_episodes=20)     # R0, R1, R2d, R2c, R2l, R3d, R3c, R3l
     obs, info = env.reset(seed=0, options={"new_run": True})
@@ -47,15 +49,19 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 
 | Path | Content |
 |---|---|
-| `World1/config.py` | frozen world parameters (`WorldConfig`) |
-| `World1/world.py` | the Gymnasium environment `ToyWorld` |
-| `World1/drift.py` | three drift wrappers: `DynamicsDrift`, `CostDrift`, `LatencyDrift` |
-| `World1/regimes.py` | the 8-cell regime grid and `make_env` |
-| `World1/policies.py` | scripted crosser (frozen reference agent) and damage-free retreat |
-| `World1/evaluate.py` | `run_frozen`: runs the frozen agent and collects ground-truth residuals |
-| `World1/journal.py` | `TruthLogger`: per-episode ground-truth journal |
-| `tests/` | 28 tests: dynamics, geometry, damage, retreat, leaks, every regime |
-| `scripts/` | calibration of `D`, exploration of the regimes |
+| `toyworld/config.py` | frozen world parameters (`WorldConfig`) |
+| `toyworld/world.py` | the Gymnasium environment `ToyWorld` |
+| `toyworld/drift.py` | three drift wrappers: `DynamicsDrift`, `CostDrift`, `LatencyDrift` |
+| `toyworld/regimes.py` | the 8-cell regime grid and `make_env` |
+| `toyworld/policies.py` | scripted crosser (frozen reference agent) and damage-free retreat |
+| `toyworld/evaluate.py` | `run_frozen`: runs the frozen agent and collects ground-truth residuals |
+| `toyworld/journal.py` | `TruthLogger`: per-episode ground-truth journal |
+| `toyworld/seeds.py` | frozen seed lists: calibration, train, validation, test |
+| `toyworld/model.py` | `WorldModel` (PyTorch MLP, two heads) and `AnalyticModel` (true equations, oracle) |
+| `toyworld/data.py` | pretraining data collected in the nominal world |
+| `toyworld/agent.py` | `BaselineAgent`: route choice + CEM model-predictive control |
+| `tests/` | 38 tests: dynamics, geometry, damage, retreat, leaks, every regime, world model, agent |
+| `scripts/` | calibration of `D`, exploration of the regimes, training and evaluation of the baseline agent |
 | `docs/` | research design, world specification, regimes and results, status |
 
 ## Documentation
@@ -63,4 +69,5 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 1. [docs/research.md](docs/research.md): question, predictions A to E with stopping rules, agents, methodology.
 2. [docs/world_spec.md](docs/world_spec.md): equations, symbols, parameters.
 3. [docs/regimes.md](docs/regimes.md): the 8-regime grid, adjusted values, measured verification results.
-4. [docs/status.md](docs/status.md): what is done, open decisions, next steps, checklist mapping.
+4. [docs/agents.md](docs/agents.md): the baseline agent (objective, world model, planner, competence criteria).
+5. [docs/status.md](docs/status.md): what is done, open decisions, next steps, checklist mapping.

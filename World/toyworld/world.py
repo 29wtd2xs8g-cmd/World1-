@@ -98,6 +98,14 @@ class ToyWorld(gym.Env):
                 v_new[i] = min(v_new[i], 0.0)
         return x_new, v_new
 
+    def teleport(self, x, v=None):
+        """Privileged state reset, for pretraining data collection only (never used in evaluation).
+        Returns the observation at the new state."""
+        self.x = np.array(x, float)
+        self.v = np.zeros(2) if v is None else np.array(v, float)
+        self._c = self.damage_rate(self.x)
+        return self._observe()
+
     # ------------------------------------------------------------------ Gymnasium API
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)

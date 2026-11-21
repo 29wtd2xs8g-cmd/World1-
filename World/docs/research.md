@@ -42,8 +42,13 @@ All thresholds are frozen before the first experiment. "Validation seeds" are se
 | **D. Identification** (finding the cause, not only detecting a problem: which zone/path leads to the error) | At equal exploration budget, Agent 1 identifies the true cause in at least 15% of episodes versus at most 5% for Agent 2, or with a median identification delay at least 5 steps shorter | If neither agent exceeds 40% identification on validation, check that the signal is observable |
 | **E. Recovering the goal** (reach the target without triggering a continuing failure loop) | Agent 1 reaches the target at least 15 steps before Agent 2, with a lower recurrence rate of failure | If Agent 1 is faster but with higher exploration damage and a much higher cost (more than 15% of the context window), stop and tighten the margin constraint |
 
-Open point for C: the delay is defined from `t_onset`, but an agent cannot feel anything before it
-enters the affected zone `k*`. See [status.md](status.md), open decisions.
+**Definition of the detection delay (decided).** `dt_det = t_alert - tau`, in global environment steps
+of the run, where `tau` is the drift onset (`t_onset`). An alert before `tau` is a false alarm, not a
+negative delay. A drift that is never alerted gives a censored delay (missing, not zero).
+This delay includes the travel time to the affected zone `k*`: an agent cannot feel anything before
+entering it. It is therefore also logged from the exposure time, as a secondary metric:
+`dt_exp = t_alert - t_exp`, with `t_exp` the first step >= `tau` where the drift acts on the agent
+(`phi_k*(x) > 0` for dynamics and cost; first nonzero command for latency).
 
 ## 4. Methodology
 

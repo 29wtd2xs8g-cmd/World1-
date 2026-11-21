@@ -30,6 +30,7 @@ def run_frozen(regime="R0", seeds=range(10), n_episodes=20, route="A", config: W
                 done = term or trunc
             rows.append({
                 "seed": seed, "episode": ep, "ccum": tr["ccum"], "outcome": tr["outcome"], "steps": tr["t"],
+                "route": getattr(pol, "route", None),
                 "resid_all": np.array(resid_all), "resid_zone": resid_zone,
                 "tau_ep": onset_episode(seed, n_episodes) if regime != "R0" else None,
             })
