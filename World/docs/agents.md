@@ -89,17 +89,9 @@ change 0.072 (noise floor about 0.042; the excess comes from wall and border col
 Episodes last 98 steps on average (the scripted crosser needs 132). With the analytic model the same
 planner gives `Ccum` 1.51, so the learned model costs nothing measurable here.
 
-**Frozen baseline under drift** (`scripts/explore_baseline.py`, 3 validation seeds x 20 episodes, model never updated):
+**Frozen baseline under drift**: see [regimes.md](regimes.md), section 3 (6 validation seeds x 20 episodes, `D` = 2.981).
+A first exploration with `D` = 5.005 (3 seeds) showed that the baseline rarely failed under drift (3 to 5% for R2c
+and R2d), which led to the recalibration of `D` on this agent.
 
-| Regime | `Ccum` before -> after `tau` | Failure rate after `tau` |
-|---|---|---|
-| R2d | 1.51 -> 3.37 | 5% |
-| R2c | 1.51 -> 4.49 | 3% |
-| R2l | 1.51 -> 4.33 | 70% |
-| R3c | 1.51 -> 2.34 | 0% |
-
-R1, R3d and R3l have not been run with this agent. 3 seeds is an exploration, not a result.
-
-**Consequence for `D`.** `D = 5.005` was calibrated on the scripted crosser (2.50 per crossing). The
-baseline damages 40% less per crossing, so abrupt harmful drifts triple its damage without reaching
-`D`. See [status.md](status.md), open decision 1.
+**Calibration of `D`** (`scripts/calibrate.py model.pt 4 2`): 200 episodes on the calibration seeds, route A in 100%,
+`C1'` = 1.4908 (std 0.081, 95% CI +-0.011), `D = 2 * C1'` = 2.981.

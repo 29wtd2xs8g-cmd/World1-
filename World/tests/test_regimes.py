@@ -5,6 +5,7 @@ Standardised residual r = (true v - v predicted by the frozen nominal model) / (
 Residual excess = sqrt(max(0, mean |r|^2 - 2)): 0 without drift, grows with the signal.
 Dynamics SNR = psi * phi * sqrt(dt) / sigma (~ excess inside the zone); cost SNR = dtheta * phi / sigma_n.
 """
+from dataclasses import replace
 from functools import lru_cache
 
 import numpy as np
@@ -15,14 +16,16 @@ from toyworld.evaluate import run_frozen
 from toyworld.regimes import REGIMES, make_env
 
 CFG = WorldConfig()
+FREE = replace(CFG, D=1e9)       # damage measured without failure cutoff, so that Ccum is not capped at D
 SEEDS = range(12)
 X = 0.10
-C1 = 2.5027
+C1 = 2.5027                  # damage of one crossing of the SCRIPTED agent (these tests use it)
+C1_BASELINE = 1.4908         # damage of one crossing of the baseline agent; D = 2 * C1_BASELINE
 
 
 @lru_cache(maxsize=None)
 def rows(reg):
-    return run_frozen(reg, seeds=SEEDS, n_episodes=20)
+    return run_frozen(reg, seeds=SEEDS, n_episodes=20, config=FREE)
 
 
 def mean_ccum(rs):
@@ -30,7 +33,8 @@ def mean_ccum(rs):
 
 
 def fail_rate(rs):
-    return float(np.mean([r["outcome"] == "failure" for r in rs]))
+    """Failure = damage reaching D. The scripted agent ignores D, so this equals the failure rate with a real D."""
+    return float(np.mean([r["ccum"] >= CFG.D for r in rs]))
 
 
 def excess(rs, zone=None):
@@ -105,7 +109,7 @@ def test_R2d_dynamics():
 
 def test_R2c_cost():
     pre, post = split("R2c")
-    assert 3 * C1 > CFG.D                                       # a crossing through A costs 3*C1 > D
+    assert 3 * C1_BASELINE > CFG.D                              # a crossing of the baseline through A costs 3*C1' > D
     assert mean_ccum(post) >= (1 + X) * r0_mean()
     assert fail_rate(post) >= 0.9 > fail_rate(pre)
     assert excess(post, zone=0) < 0.3                           # the dynamics did not move

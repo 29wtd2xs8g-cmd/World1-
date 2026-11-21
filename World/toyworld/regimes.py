@@ -19,17 +19,20 @@ ONSET_FRAC = (0.25, 0.5)     # tau (episode) is drawn between 25% and 50% of the
 # (scripts/explore_regimes.py). Reason: the original values did not produce the extra damage
 # X = 10% required by the grid.
 #   R2l  d: 0 -> 3 steps   =>  0 -> 10 steps   (d = 3 gives only +4% damage)
-#   R3d  final psi1 0.1    =>  0.25            (0.1 gives +7%; 0.25 about +17%, SNR < 1 inside the zone)
+#   R3d  final psi1 0.1    =>  0.25 (scripted agent: 0.1 gives +7%; 0.25 about +17%, SNR < 1 inside the zone)
 #   R3c  theta1 1 -> 3 over 5 episodes  =>  1 -> 2 over 10 episodes (+0.1 damage units/s per episode
 #        = sigma_n, at 20 episodes)
 #   R3l  d: +1 step every 2 episodes up to 3  =>  +1 step per episode up to 10 (at 20 episodes)
+# Second adjustment, after recalibrating D on the baseline agent (scripts/verify_regimes_baseline.py,
+# scripts/sweep_target.py): the baseline compensates part of the force by feedback, so R3d psi1 0.25 gave only
+# +10% damage; 0.35 gives +15% with the one-step residual still below the noise (0.5 gives +22% but is visible).
 REGIMES = {
     "R0": None,
     "R1": (DynamicsDrift, 2, "jump", 1.0, 0),      # phantom zone: psi3 0 -> 1.0 m/s^2, theta3 = 0
     "R2d": (DynamicsDrift, 0, "jump", 1.0, 0),     # psi1 0 -> 1.0 m/s^2
     "R2c": (CostDrift, 0, "jump", 3.0, 0),         # theta1 1 -> 3 damage units/s
     "R2l": (LatencyDrift, None, "jump", 10, 0),    # d 0 -> 10 steps
-    "R3d": (DynamicsDrift, 0, "ramp", 0.25, 0.25),  # psi1 0 -> 0.25 m/s^2 over 25% of the run (5 episodes at 20)
+    "R3d": (DynamicsDrift, 0, "ramp", 0.35, 0.25),  # psi1 0 -> 0.35 m/s^2 over 25% of the run (5 episodes at 20)
     "R3c": (CostDrift, 0, "ramp", 2.0, 0.5),        # theta1 1 -> 2 damage units/s over 50% of the run (10 at 20)
     "R3l": (LatencyDrift, None, "steps", 10, 0.5),  # d 0 -> 10 over 50% of the run (+1 step per episode at 20)
 }

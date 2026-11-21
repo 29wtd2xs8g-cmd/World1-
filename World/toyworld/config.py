@@ -34,6 +34,8 @@ class WorldConfig:
     theta0: tuple = (1.0, 0.3, 0.0)              # nominal damage rate, damage units/s
     e: tuple = ((-1.0, 0.0), (-1.0, 0.0), (0.0, 1.0))   # direction of the hidden force, per zone
 
-    # Failure threshold (damage units) = 2 * C1, with C1 = 2.5027 measured by scripts/calibrate.py
-    # (scripted agent, route A, no drift, 200 episodes, 95% CI +-0.015). Frozen before any experiment.
-    D: float = 5.005
+    # Failure threshold (damage units) = 2 * C1', with C1' = 1.4908 measured by scripts/calibrate.py:
+    # baseline agent (docs/agents.md), route A, no drift, 200 episodes on the calibration seeds, 95% CI +-0.011.
+    # Frozen before any trigger experiment (checklist 0.2). It replaces the first calibration
+    # (5.005 = 2 * 2.5027, scripted crosser), which left the competent baseline a margin of 3.3 times its damage.
+    D: float = 2.981

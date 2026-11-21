@@ -62,7 +62,7 @@ Retreat = cancel the velocity, then return to `x0`. Damage suffered during the r
 | `c[t]` | instantaneous damage | d.u./s | no (only through `n[t]`) |
 | `n[t]`, `sigma_n` | nociceptive signal and its noise | d.u./s | yes |
 | `Ccum[t]` | cumulative damage | d.u. | no (estimated by summing `n`) |
-| `D` | irreversible failure threshold | d.u. | yes (known tolerance) |
+| `D` | 2.981 d.u. = 2 * C1' | `C1'` = 1.4908 = damage of a direct crossing through A, no drift, by the baseline agent (200 episodes on the calibration seeds, 95% CI +-0.011) |
 | `b[t]` | remaining margin `D - Ccum[t]` | d.u. | no (estimated) |
 | `tau` | drift onset (`t_onset`) | step | no |
 | nature, `k*` | kind of drift, true cause zone | -, index | no |
@@ -86,6 +86,11 @@ Retreat = cancel the velocity, then return to `x0`. Damage suffered during the r
 | Nominal `theta` | (1.0, 0.3, 0) d.u./s | route B costs less but is longer |
 | `D` | 5.005 d.u. = 2 * C1 | `C1` = 2.5027 = damage of a direct crossing through A, no drift (scripted agent, 200 episodes, 95% CI +-0.015) |
 | Run | 20 episodes (prototype), `tau` start of an episode in {5..10} | proportional to `n_episodes`: `tau` in [25%, 50%] of the run |
+
+`D` was first calibrated at 5.005 = 2 * 2.5027 with the scripted crosser. The competent baseline agent crosses
+faster (1.49 per crossing), so that `D` left it a margin of 3.3 times its damage and failures became rare under drift
+(3 to 5% for R2c and R2d). `D` was recalibrated on the baseline, which is the reference of all comparisons, before any
+trigger experiment. The scripted crosser (2.50 per crossing) now only serves to test the world.
 
 Changes relative to the first draft of this specification, made after measurement or design review:
 `T` 300 -> 500; Z3 (2, 8) -> (3, 3), because off-route the phantom zone was never visited and R1 was inert;

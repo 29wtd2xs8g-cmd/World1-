@@ -7,6 +7,8 @@ Everything is expressed on observed (noisy) quantities. Command history is order
 `AnalyticModel` has the same interface and uses the true equations: it is the oracle of checklist 2.2
 and a reference for testing the planner without learning.
 """
+from pathlib import Path
+
 import numpy as np
 import torch
 from torch import nn
@@ -100,6 +102,7 @@ class WorldModel(nn.Module):
 
     # ------------------------------------------------------------------ files
     def save(self, path):
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
         torch.save({"hparams": {"K": self.K, "h_dyn": self.h_dyn, "h_noc": self.h_noc},
                     "state": self.state_dict()}, path)
 

@@ -24,6 +24,8 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
     PYTHONPATH=. python scripts/explore_regimes.py 12   # scripted agent, 8 regimes, before/after drift
     PYTHONPATH=. python scripts/train_baseline.py       # pretrains the world model (about 1 min)
     PYTHONPATH=. python scripts/eval_baseline.py        # competence check before drift (about 5 min)
+    PYTHONPATH=. python scripts/calibrate.py results/baseline.pt 4 2          # C1' and D with the baseline (2 workers)
+    PYTHONPATH=. python scripts/verify_regimes_baseline.py results/baseline.pt 6 2   # 8 regimes with the baseline (about 45 min)
 
 ## Use
 

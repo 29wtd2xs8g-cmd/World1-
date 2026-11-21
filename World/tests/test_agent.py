@@ -48,7 +48,7 @@ def test_model_learns_a_small_dataset_and_is_deterministic(tmp_path):
     r2 = m2.fit(d, epochs=6, seed=3)
     assert r1 == r2                                                       # same seeds, same result
     assert r1["dv"] < 0.5 * float(np.std(d["Y_dv"])) * 1.4 and r1["n"] < 0.2
-    path = tmp_path / "m.pt"
+    path = tmp_path / "new_folder" / "m.pt"                               # save creates the folder
     m1.save(path)
     m3 = WorldModel.load(path)
     x = torch.tensor([[5.0, 5.0]])
