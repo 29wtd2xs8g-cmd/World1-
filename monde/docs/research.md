@@ -106,6 +106,27 @@ agent fails less and is compared on harder cases.
 
 **D5. Repeated failure (prediction E).** The number of failures after the first failure of the run.
 
-**First measurement of D1 (2026-11-22, 6 validation seeds).** Not met: R2c, R2l and R3l reach 15%, R3d and R3c
-do not. Causes and numbers in [agents.md](agents.md), section 10. The decision on how to proceed is recorded in
-[status.md](status.md).
+**First measurement of D1 (2026-11-22, 6 validation seeds, route margin 1.0).** Not met: R2c, R2l and R3l reach 15%, R3d
+and R3c do not (R3c -0.8%). Causes and numbers in [agents.md](agents.md), section 10; the exact data are archived.
+
+**Measurement under the amended baseline (DEV-1, `margin_frac` 0.7, same 6 seeds).** Met: R2c +87%, R3c +58%, R2l +29%,
+R3l +22% (R2d +4%, R3d +1.5%). Numbers in [agents.md](agents.md), section 11. This is a post hoc amendment, declared as such
+in [protocol_deviations.md](protocol_deviations.md); the verdict is to be confirmed on the 60 validation seeds, and the final
+conclusions are judged on the test seeds only.
+
+**D6. Regimes are read by family (2026-11-22).** R3d stays as a regime of damage without mortality: harmful (+15%
+damage) but absorbed by the nominal controller (`Ccum` 1.6 against `D` = 2.98). On R2d, R2c, R2l, R3c and R3l the main
+judge is the irreversible failure rate (with damage conditional on success and survival); on R3d, R0 and R1 the
+judges are cumulative damage, revision cost and false alarms, since failure is zero by construction.
+
+**D7. Reading rule for `Ccum` (2026-11-22).** `Ccum` is measured over the complete episode, never on a window. It is
+never interpreted without the failure and success rates, which come first in every table; `Ccum` is reported over the
+successful episodes next to the all-episode mean, because a failure caps it at about `D` and a timeout truncates it.
+Details in [protocol.md](protocol.md), section 3.1.
+
+**D8. Statistics and seeds (2026-11-22).** 60 paired seeds for validation and for test (more than 50), 5,000 bootstrap
+replications over seeds, Holm correction over the announced comparisons, one tuning budget for every tunable agent,
+test seeds opened once through a recorded ledger. Details in [protocol.md](protocol.md), sections 3.2 to 3.4.
+
+**Amendment of the baseline (DEV-1, 2026-11-22).** After the first measurement of D1, the route rule received a safety
+buffer (`margin_frac` 0.7, for every agent). See [protocol_deviations.md](protocol_deviations.md).

@@ -20,7 +20,7 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 ## Install and test
 
     pip install -r requirements.txt
-    python -m pytest -q                        # 49 tests, about 1 min
+    python -m pytest -q                        # 60 tests, about 1 min
     PYTHONPATH=. python scripts/calibrate.py   # measures C1 and D = 2*C1
     PYTHONPATH=. python scripts/explore_regimes.py 12   # scripted agent, 8 regimes, before/after drift
     PYTHONPATH=. python scripts/train_baseline.py       # pretrains the world model (about 1 min)
@@ -69,7 +69,11 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 | `toyworld/triggers.py` | trigger interface: `StepRecord`, `Trigger`, `NeverTrigger`, `AlwaysTrigger` |
 | `toyworld/revision.py` | revision by fine-tuning on the window of the last episode (`RevisionParams`) |
 | `toyworld/adaptive.py` | `run_agent`: one agent, one trigger (or the oracle), one full run; retreat on alert |
-| `tests/` | 49 tests: dynamics, geometry, damage, retreat, leaks, every regime, world model, agent, triggers, revision, oracle |
+| `toyworld/metrics.py` | evaluation rules: outcome table (failure first), `Ccum` over successes, run totals, paired bootstrap, Holm |
+| `toyworld/tuning.py` | `tune`: the same tuning budget for every tunable agent, ledger and equality check |
+| `protocol/` | test-seed ledger (empty until the final study) and tuning ledger, tracked by git |
+| `archive/` | exact data of runs that motivated a protocol deviation |
+| `tests/` | 60 tests: dynamics, geometry, damage, retreat, leaks, every regime, world model, agent, triggers, revision, oracle, seeds, metrics, protocol |
 | `scripts/` | calibration of `D`, exploration of the regimes, baseline training and evaluation, revision budget, headroom |
 | `docs/` | research design, world specification, regimes and results, status |
 
@@ -79,4 +83,6 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 2. [docs/world_spec.md](docs/world_spec.md): equations, symbols, parameters.
 3. [docs/regimes.md](docs/regimes.md): the 8-regime grid, adjusted values, measured verification results.
 4. [docs/agents.md](docs/agents.md): the baseline agent, the references (frozen, oracle, always-adapting), the trigger interface and the revision protocol.
-5. [docs/status.md](docs/status.md): what is done, open decisions, next steps, checklist mapping.
+5. [docs/protocol.md](docs/protocol.md): evaluation rules (checklist section 3): metrics, seeds, tuning budget, statistics.
+6. [docs/protocol_deviations.md](docs/protocol_deviations.md): dated log of changes made to the protocol after a result was seen.
+7. [docs/status.md](docs/status.md): what is done, open decisions, next steps, checklist mapping.

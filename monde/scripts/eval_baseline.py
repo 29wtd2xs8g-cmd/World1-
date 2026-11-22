@@ -13,7 +13,7 @@ from toyworld.seeds import VALIDATION_SEEDS
 
 C1 = 2.5027
 path = sys.argv[1] if len(sys.argv) > 1 else "results/baseline.pt"
-n_seeds = int(sys.argv[2]) if len(sys.argv) > 2 else len(VALIDATION_SEEDS)
+n_seeds = int(sys.argv[2]) if len(sys.argv) > 2 else 30     # the 30 documented seeds
 n_episodes = int(sys.argv[3]) if len(sys.argv) > 3 else 3
 model = WorldModel.load(path)
 t0 = time.time()

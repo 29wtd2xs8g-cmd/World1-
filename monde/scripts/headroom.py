@@ -1,18 +1,19 @@
 """Checklist 2.3: headroom per regime = what the best possible reference gains over the frozen agent.
 
 For each harmful regime and each validation seed it runs the ORACLE (true post-drift parameters, never revised) and
-the ALWAYS-ADAPTING agent (fine-tuned at the end of every episode); the FROZEN agent is read from
-results/regimes_baseline.json (same code path: the Never-trigger runner reproduces it exactly, see tests) or
-recomputed if that file does not cover the seeds. Results are appended to results/headroom.jsonl as they come, so a
+the ALWAYS-ADAPTING agent (fine-tuned at the end of every episode); the FROZEN agent is recomputed by
+the same code (an earlier version read results/regimes_baseline.json, which was stale for R3d, see DEV-1). Results are appended to results/headroom.jsonl as they come, so a
 partial run is usable. Criterion D1 (docs/research.md, section 6): headroom >= 15% in at least 3 harmful regimes,
 at least one of them in {R3d, R3c}; headroom = (Ccum_frozen - Ccum_oracle) / Ccum_frozen, post-tau episodes.
 
 Usage:
-  PYTHONPATH=. python scripts/headroom.py run model.pt [n_seeds] [workers] [margin_frac] [regimes, comma separated]
+  PYTHONPATH=. python scripts/headroom.py run model.pt [n_seeds] [workers] [margin_frac] [regimes, comma separated | all]
+  PYTHONPATH=. python scripts/headroom.py invariance margin_frac
   PYTHONPATH=. python scripts/headroom.py summary [margin_frac]
-  PYTHONPATH=. python scripts/headroom.py detail [margin_frac]
-`margin_frac` (default 1.0 = the pre-registered baseline) is the exploratory safety buffer of the route rule
-(AgentParams.margin_frac); results with another value go to results/headroom_rho<value>.jsonl.
+`margin_frac` (default 1.0 = the first protocol; the agents' default is 0.7 since DEV-1, docs/protocol_deviations.md) is
+the safety buffer of the route rule (AgentParams.margin_frac); results with another value go to
+results/headroom_rho<value>.jsonl. `summary` lists outcomes first (failure, success, timeout) and reports Ccum over the
+successful episodes next to the all-episode mean (the all-episode mean is the pre-registered D1 definition).
 """
 import json
 import multiprocessing as mp
@@ -21,7 +22,8 @@ from pathlib import Path
 
 import numpy as np
 
-from toyworld.seeds import VALIDATION_SEEDS
+from toyworld import metrics
+from toyworld.seeds import BOOTSTRAP_REPS, VALIDATION_SEEDS
 
 HARMFUL = ["R2d", "R2c", "R2l", "R3d", "R3c", "R3l"]
 OUT = Path("results/headroom.jsonl")
@@ -64,11 +66,8 @@ def run(model_path, n_seeds=6, workers=2, rho=1.0, regimes=None):
     done = set()
     if OUT.exists():
         done = {(r["kind"], r["regime"], r["seed"]) for r in map(json.loads, OUT.read_text().splitlines())}
-    have_frozen = set()
-    if FROZEN.exists():
-        have_frozen = {(r["regime"], r["seed"]) for r in json.load(open(FROZEN))}
     jobs = [(k, g, s, rho) for s in seeds for k in ("oracle", "always") for g in regimes if (k, g, s) not in done]
-    jobs += [("frozen", g, s, rho) for s in seeds for g in regimes if (g, s) not in have_frozen and ("frozen", g, s) not in done]
+    jobs += [("frozen", g, s, rho) for s in seeds for g in regimes if ("frozen", g, s) not in done]
     OUT.parent.mkdir(exist_ok=True)
     with mp.Pool(workers, initializer=_init, initargs=(model_path,)) as pool, open(OUT, "a") as f:
         for res in pool.imap_unordered(_job, jobs, chunksize=1):
@@ -77,12 +76,14 @@ def run(model_path, n_seeds=6, workers=2, rho=1.0, regimes=None):
             print("done", res["kind"], res["regime"], res["seed"], flush=True)
 
 
-def _load(OUT=OUT):
+def _load(OUT=OUT, legacy_frozen=False):
+    """Runs of one output file. `legacy_frozen` (run 1 only) also reads the frozen runs of the old verification file,
+    which is stale for R3d (written before its amplitude went from 0.25 to 0.35); never use it for new runs."""
     runs = {}
     if OUT.exists():
         for r in map(json.loads, OUT.read_text().splitlines()):
             runs[(r["kind"], r["regime"], r["seed"])] = r["rows"]
-    if FROZEN.exists():
+    if legacy_frozen and FROZEN.exists():
         by = {}
         for r in json.load(open(FROZEN)):
             by.setdefault((r["regime"], r["seed"]), []).append(r)
@@ -91,64 +92,82 @@ def _load(OUT=OUT):
     return runs
 
 
-def _post(rows):
-    return [r for r in rows if r["episode"] >= r["tau_ep"]]
+def frozen_invariance(rho):
+    """The frozen agent must not depend on margin_frac (its predictions stay nominal, so its route stays A): compare the
+    frozen runs computed under `rho` with those computed under 1.0, episode by episode."""
+    def frozen(path):
+        out = {}
+        if path.exists():
+            for r in map(json.loads, path.read_text().splitlines()):
+                if r["kind"] == "frozen":
+                    out[(r["regime"], r["seed"])] = [(e["ccum"], e["steps"], e["route"], e["outcome"]) for e in r["rows"]]
+        return out
+    a, b = frozen(out_path(rho)), frozen(out_path(1.0))
+    common = sorted(set(a) & set(b))
+    same = [k for k in common if a[k] == b[k]]
+    print(f"frozen runs computed under both margin_frac {rho} and 1.0: {len(common)}; identical episode by episode: {len(same)}")
+    for k in common:
+        if k not in same:
+            print("  differs:", k)
 
 
-def summary(rho=1.0, boot=2000, seed=0):
-    runs = _load(out_path(rho))
+KINDS = ("frozen", "oracle", "always")
+
+
+def _seeds(runs, g):
+    return sorted({s for (k, gg, s) in runs if gg == g and k == "oracle"
+                   and ("frozen", g, s) in runs and ("always", g, s) in runs})
+
+
+def _boot_ratio(O, F, rng, reps):
+    """Bootstrap interval of 1 - mean(O) / mean(F) over seeds (the headroom of criterion D1)."""
+    i = rng.integers(0, len(F), (reps, len(F)))
+    h = 1 - O[i].mean(axis=1) / F[i].mean(axis=1)
+    return np.percentile(h, [2.5, 97.5])
+
+
+def summary(rho=1.0, seed=0):
+    """Outcomes first (rule 2 of toyworld/metrics.py), then the headroom. Post-tau episodes, paired seeds."""
+    runs = _load(out_path(rho), legacy_frozen=(rho == 1.0))
     rng = np.random.default_rng(seed)
-    print(f"{'regime':6s} {'seeds':>5s} | {'Ccum frozen':>11s} {'oracle':>7s} {'always':>7s} | {'fail frozen':>11s} {'oracle':>7s} "
-          f"{'always':>7s} | {'headroom oracle':>26s} | {'always-adapt gain':>17s}")
-    ok = []
+    print(f"margin_frac {rho}; post-tau episodes; bootstrap {BOOTSTRAP_REPS} replications over seeds\n")
+    print(f"{'regime':6s} {'family':11s} {'kind':7s} {'seeds':>5s} | {'failure':>7s} {'success':>7s} {'timeout':>7s} {'route A':>7s} | "
+          f"{'Ccum|success':>12s} {'Ccum all':>8s}")
+    rows_h, ok = [], []
     for g in HARMFUL:
-        seeds = sorted({s for (k, gg, s) in runs if gg == g and k == "oracle"
-                        and ("frozen", g, s) in runs and ("always", g, s) in runs})
+        seeds = _seeds(runs, g)
         if not seeds:
             continue
-        def stats(k, s):
-            post = _post(runs[(k, g, s)])
-            return [np.mean([r["ccum"] for r in post]), np.mean([r["outcome"] == "failure" for r in post])]
-
-        per = {k: np.array([stats(k, s) for s in seeds]) for k in ("frozen", "oracle", "always")}
-        F, O, A = (per[k][:, 0] for k in ("frozen", "oracle", "always"))
+        per = {k: [metrics.outcome_table(metrics.post_tau(runs[(k, g, s)])) for s in seeds] for k in KINDS}
+        for k in KINDS:                                    # means over seeds, so that every figure is paired and comparable
+            m = {key: np.mean([t[key] for t in per[k]]) for key in ("failure", "success", "timeout", "ccum_all")}
+            ok_seeds = [t["ccum_success"] for t in per[k] if not np.isnan(t["ccum_success"])]
+            route_a = np.mean([np.mean([r["route"] == "A" for r in metrics.post_tau(runs[(k, g, s)])]) for s in seeds])
+            print(f"{g:6s} {metrics.family(g):11s} {k:7s} {len(seeds):5d} | {m['failure']:7.2f} {m['success']:7.2f} {m['timeout']:7.2f} "
+                  f"{route_a:7.2f} | {np.mean(ok_seeds) if ok_seeds else float('nan'):12.2f} {m['ccum_all']:8.2f}")
+        F, O, A = (np.array([t["ccum_all"] for t in per[k]]) for k in KINDS)
+        fF, fO, fA = (np.array([t["failure"] for t in per[k]]) for k in KINDS)
+        lo, hi = _boot_ratio(O, F, rng, BOOTSTRAP_REPS)
         head = 1 - O.mean() / F.mean()
-        bs = []
-        for _ in range(boot):
-            i = rng.integers(0, len(seeds), len(seeds))
-            bs.append(1 - O[i].mean() / F[i].mean())
-        lo, hi = np.percentile(bs, [2.5, 97.5])
-        print(f"{g:6s} {len(seeds):5d} | {F.mean():11.2f} {O.mean():7.2f} {A.mean():7.2f} | "
-              f"{per['frozen'][:, 1].mean():11.2f} {per['oracle'][:, 1].mean():7.2f} {per['always'][:, 1].mean():7.2f} | "
-              f"{head * 100:+9.1f}%  [{lo * 100:+6.1f}, {hi * 100:+6.1f}] | {(1 - A.mean() / F.mean()) * 100:+16.1f}%")
+        fb = metrics.paired_bootstrap(fF, fO, BOOTSTRAP_REPS)
+        rows_h.append((g, head, lo, hi, fb, 1 - A.mean() / F.mean()))
         ok.append((g, head))
+    print(f"\n{'regime':6s} | {'failure frozen - oracle (points)':>34s} | {'D1 headroom, Ccum all episodes':>32s} | {'always-adapting gain':>20s}")
+    for g, head, lo, hi, fb, gain in rows_h:
+        print(f"{g:6s} | {fb['mean'] * 100:+9.1f}  [{fb['lo'] * 100:+6.1f}, {fb['hi'] * 100:+6.1f}]        | "
+              f"{head * 100:+9.1f}%  [{lo * 100:+6.1f}, {hi * 100:+6.1f}] | {gain * 100:+19.1f}%")
     n_ok = sum(h >= 0.15 for _, h in ok)
     has_r3 = any(h >= 0.15 for g, h in ok if g in ("R3d", "R3c"))
-    print(f"\nregimes with headroom >= 15%: {n_ok} of {len(ok)} measured; one of R3d/R3c among them: {has_r3}")
-    print("criterion D1:", "MET" if (n_ok >= 3 and has_r3) else "NOT MET (on the seeds measured so far)")
-
-
-def detail(rho=1.0):
-    """Why the headroom is what it is: route chosen, outcomes and episode length, post-tau episodes."""
-    runs = _load(out_path(rho))
-    print(f"{'regime':6s} {'kind':7s} {'route A':>8s} {'success':>8s} {'failure':>8s} {'steps (success)':>16s} {'Ccum (success)':>15s}")
-    for g in HARMFUL:
-        for k in ("frozen", "oracle", "always"):
-            rows = [r for (kk, gg, s), rs in runs.items() if kk == k and gg == g for r in _post(rs)]
-            if not rows:
-                continue
-            ok = [r for r in rows if r["outcome"] == "success"]
-            print(f"{g:6s} {k:7s} {np.mean([r['route'] == 'A' for r in rows]):8.2f} {np.mean([r['outcome'] == 'success' for r in rows]):8.2f} "
-                  f"{np.mean([r['outcome'] == 'failure' for r in rows]):8.2f} {np.mean([r['steps'] for r in ok]) if ok else float('nan'):16.0f} "
-                  f"{np.mean([r['ccum'] for r in ok]) if ok else float('nan'):15.2f}")
+    print(f"\ncriterion D1 as pre-registered (Ccum, all post-tau episodes): {n_ok} of {len(ok)} regimes at >= 15%; "
+          f"one of R3d/R3c among them: {has_r3} -> {'MET' if (n_ok >= 3 and has_r3) else 'NOT MET'}")
 
 
 if __name__ == "__main__":
     a = sys.argv
-    if a[1] == "detail":
-        detail(float(a[2]) if len(a) > 2 else 1.0)
-    elif a[1] == "run":
+    if a[1] == "run":
         run(a[2], int(a[3]) if len(a) > 3 else 6, int(a[4]) if len(a) > 4 else 2,
-            float(a[5]) if len(a) > 5 else 1.0, a[6].split(",") if len(a) > 6 else None)
+            float(a[5]) if len(a) > 5 else 1.0, a[6].split(",") if len(a) > 6 and a[6] != "all" else None)
+    elif a[1] == "invariance":
+        frozen_invariance(float(a[2]))
     else:
         summary(float(a[2]) if len(a) > 2 else 1.0)

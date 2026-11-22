@@ -24,9 +24,11 @@ The world returns reward 0; the objective lives in the agent's planning cost.
     rollout cost J   = sum_h |x_h - wp|^2 + lambda * sum_h nhat(x_h) * dt + 0.01 * sum_h |u_h|^2
 
 `L_r` is the length of the polyline of route `r`, `v_c = 0.9 m/s` the cruise speed, `Dhat_r` the
-damage predicted by the model along the route. A route is rejected if `Dhat_r` exceeds the estimated
-margin `bhat = D - sum n * dt`. Route choice happens at the start of every episode (the margin
-`bhat` is then `D`, because `Ccum` restarts at 0).
+damage predicted by the model along the route. A route is allowed if `Dhat_r < margin_frac * bhat`, with the estimated
+margin `bhat = D - sum n * dt` and `margin_frac` = 0.7 for every agent since protocol deviation DEV-1
+([protocol_deviations.md](protocol_deviations.md)); the first protocol used 1.0 (the whole margin). Route choice happens
+at the start of every episode (the margin `bhat` is then `D`, because `Ccum` restarts at 0), so route A needs a
+predicted damage below 0.7 x 2.981 = 2.087; the learned model predicts 1.48.
 
 ## 3. World model (`toyworld/model.py`)
 
@@ -63,6 +65,10 @@ exploration is never cut short by failure.
 Run on the validation seeds, regime R0 (no drift): success rate, failure rate, mean `Ccum`, share of
 episodes through route A. All four criteria must hold. Hyperparameters may be tuned on the
 validation seeds only; the test seeds are not used at this stage.
+
+**Re-run with `margin_frac` 0.7 (DEV-1, 2026-11-22)**, same 30 validation seeds x 3 episodes, regime R0: success 100%,
+failure 0%, mean `Ccum` 1.50, route A 100%, 98 steps per episode, all four criteria met. The numbers are those of the
+first protocol: before any drift the buffer changes nothing, because route A predicts 1.48 against a threshold of 2.087.
 
 ## 7. Known issues and limits
 
@@ -146,9 +152,9 @@ direction is reliable: more steps on a window that covers little of the arena hu
 visited (for example Z2 on route B) and mislead the next route choice. This is a consequence of D2 and is measured, not
 corrected, here.
 
-## 10. Headroom per regime (checklist 2.3), first run
+## 10. Headroom per regime (checklist 2.3), run 1: first protocol (`margin_frac` 1.0)
 
-`scripts/headroom.py`: 6 validation seeds (2000-2005), 20 episodes per run, post-`tau` episodes, paired scenarios.
+Archived exactly in `archive/2026-11-22_run1_margin1.0/` (deviation DEV-1). `scripts/headroom.py`: 6 validation seeds (2000-2005), 20 episodes per run, post-`tau` episodes, paired scenarios.
 Frozen results are those of `results/regimes_baseline.json` (the Never-trigger runner reproduces them exactly).
 Interval: bootstrap over seeds (2000 draws); with 6 seeds it is indicative only.
 
@@ -161,7 +167,7 @@ Interval: bootstrap over seeds (2000 draws); with 6 seeds it is indicative only.
 | R3c | 2.35 | 2.37 | 1.91 | 0.11 / 0.15 / 0.05 | -0.8% [-1.3, -0.3] | +18.5% |
 | R3l | 2.42 | 1.90 | 1.83 | 0.48 / 0.00 / 0.22 | +21.5% [+19.5, +24.0] | +24.5% |
 
-**Criterion D1 (research.md, section 6): not met.** Three regimes reach 15% (R2c, R2l, R3l), none of them in {R3d, R3c}.
+**Criterion D1 (research.md, section 6): not met.** (The R3d frozen reference of this run was stale: corrected to +1.5% in DEV-1, which changes no verdict.) Three regimes reach 15% (R2c, R2l, R3l), none of them in {R3d, R3c}.
 
 **Why** (from `scripts/headroom.py detail`):
 
@@ -189,3 +195,52 @@ seeds (`headroom.py run model.pt 6 2 0.7 R3c`). Frozen is unchanged (its predict
 
 Headroom +58% [+54, +62]; the always-adapting agent already gets +57%. The price is 9 more steps per crossing, because
 route B is longer. Whether to adopt this buffer is an open decision ([status.md](status.md)).
+
+## 11. Headroom per regime under the amended protocol (`margin_frac` 0.7, DEV-1)
+
+Same 6 validation seeds and protocol as section 10. Every agent, frozen included, ran with the current code and the same rule
+(`margin_frac` 0.7); results in `results/headroom_rho0.7.jsonl`, printed by `scripts/headroom.py summary 0.7`. Outcomes first
+([protocol.md](protocol.md), section 3.1). Means over seeds, post-`tau` episodes; intervals: bootstrap over seeds, 5,000 replications.
+
+**Outcomes** (frozen / oracle / always-adapting).
+
+| Regime | Failure | Success | Timeout (always) | `Ccum` over successes |
+|---|---|---|---|---|
+| R2d | 0.69 / 0.44 / 0.66 | 0.31 / 0.56 / 0.34 | 0.00 | 2.65 / 2.60 / 2.25 |
+| R2c | 1.00 / 0.00 / 0.08 | 0.00 / 1.00 / 0.92 | 0.00 | none / 0.39 / 0.40 |
+| R2l | 0.86 / 0.00 / 0.41 | 0.14 / 1.00 / 0.16 | 0.43 | 2.50 / 2.09 / 2.17 |
+| R3c | 0.11 / 0.00 / 0.01 | 0.89 / 1.00 / 0.99 | 0.00 | 2.26 / 0.98 / 0.98 |
+| R3l | 0.48 / 0.00 / 0.18 | 0.52 / 1.00 / 0.67 | 0.15 | 1.87 / 1.90 / 1.71 |
+| R3d (no mortality) | 0 / 0 / 0 | 1 / 1 / 1 | 0 | 1.67 / 1.65 / 1.63 |
+
+**Headroom of the oracle.**
+
+| Regime | Failure, frozen minus oracle (points) | D1: `Ccum` over all episodes |
+|---|---|---|
+| R2d | +24.8 [+17.5, +30.4] | +4.3% [+3.3, +5.2] |
+| R2c | +100.0 [+100.0, +100.0] | +87.4% [+87.2, +87.6] |
+| R2l | +85.8 [+70.5, +97.4] | +28.7% [+25.7, +31.4] |
+| R3c | +11.4 [+4.9, +19.4] | **+58.1%** [+53.6, +62.0] |
+| R3l | +48.1 [+40.6, +55.0] | +21.5% [+19.5, +24.0] |
+| R3d | 0 | +1.5% [+0.9, +2.1] |
+
+**Criterion D1 is met on these 6 seeds**: four regimes reach 15% (R2c, R2l, R3c, R3l), R3c among them. With 6 seeds the
+intervals only describe seed-to-seed spread; the verdict has to be confirmed on the 60 validation seeds (command below).
+
+**Reading notes.**
+
+1. On R3c the oracle now leaves route A for B in 60% of the post-`tau` episodes and avoids every failure; the always-adapting
+   agent obtains almost the same (+57.0%, failure 0.01).
+2. The always-adapting `Ccum` gain on R2l (+39.6%) is mostly timeouts (43% of the episodes neither succeed nor fail): do not read it
+   as a better outcome. This is what the outcome-first rule is for.
+3. R2d keeps a small headroom in `Ccum` (+4.3%) because failures cap it, but a large one in failures (+24.8 points).
+4. Frozen is identical under 0.7 and 1.0 (12 runs recomputed under both, identical episode by episode).
+
+5. Revision budget re-checked under 0.7 (`scripts/tune_revision.py`, calibration seeds 1000-1001, R2d and R2c, rule: lowest mean
+   post-`tau` `Ccum`). (50 steps, lr 1e-3) stays the best: mean 1.79 (R2d 2.73, R2c 0.84), against 2.06 for (150, 3e-3), 2.68 for
+   (150, 1e-3) and 3.03 without revision. The always-adapting reference therefore does not need to be redone.
+
+**To confirm D1 on 60 seeds** (about 11 minutes per seed on 2 cores, so run it on a machine with more workers):
+
+    PYTHONPATH=. python scripts/headroom.py run results/baseline.pt 60 <workers> 0.7 all
+    PYTHONPATH=. python scripts/headroom.py summary 0.7

@@ -34,17 +34,17 @@ the headroom per regime (2.3), measured by `scripts/headroom.py` (see the result
 - `D` recalibrated on the baseline agent: `D = 2 * C1'` = 2.981 (`C1'` = 1.4908), frozen before any trigger experiment. Reason: with the first calibration (5.005, scripted crosser) the competent baseline rarely failed under drift. R3d final amplitude raised from 0.25 to 0.35 for the same agent (harm at the threshold otherwise). Regimes re-verified with the baseline ([regimes.md](regimes.md), section 3).
 - Detection delay (prediction C) is counted from `tau`, as in the original definition (details in [research.md](research.md)). The delay from the first exposure to the drift is logged as a secondary metric.
 - Five decisions frozen on 2026-11-22, before the headroom measurement ([research.md](research.md), section 6): D1 headroom criterion (at least 15% post-`tau` damage gap, oracle against frozen, in at least 3 harmful regimes, one of them R3d or R3c); D2 revision recipe (fine-tuning on the window of the last episode, no replay, same budget for all adaptive agents); D3 response to an alert (retreat, revise, retry; start side of the wall only); D4 population of prediction C (all post-`tau` episodes, right-censored delays, medians with bootstrap interval); D5 repeated failure (failures after the first one of the run).
+- Taken on 2026-11-22 after the first headroom measurement ([research.md](research.md), D6-D8): regimes read by family, with R3d kept as a regime of damage without mortality (D6); reading rule for `Ccum`, failure and success rates first (D7); 60 paired seeds, 5,000 bootstrap replications, one test-seed opening recorded in a ledger, equal tuning budget per agent (D8, [protocol.md](protocol.md)).
+- DEV-1 ([protocol_deviations.md](protocol_deviations.md)): route rule with a safety margin (`margin_frac` 0.7), fixed before any contact with the test seeds, applied to every compared agent. The exact run-1 result (D1 not met, R3c -0.8%) is archived in `archive/2026-11-22_run1_margin1.0/`. Frozen is identical under 0.7 and 1.0 (12 runs).
 - Code is authoritative over earlier notes; everything written is in English.
 
 ## Open decisions
 
-1. **D1 was not met on the first measurement** ([agents.md](agents.md), section 10). Options: (a) keep the baseline and
-   the criterion as they are, and apply D1 literally (change the question before building triggers); (b) amend the
-   baseline's route rule with a safety buffer (`margin_frac` 0.7, chosen a priori, not tuned), declare it as a post hoc
-   amendment, keep the first result in the docs, re-measure the six harmful regimes on the same validation seeds, and
-   judge the final conclusions on the untouched test seeds only. Exploratory R3c result with the buffer: headroom +58%.
-2. **Role of R3d.** Harmful (+15% damage) but never fatal with any agent, so the failure-rate half of prediction B cannot
-   be tested there. Proposal: keep it as a damage-only regime and evaluate failure rate on the others.
+1. **Tuning budget for the compared agents** ([protocol.md](protocol.md), section 3.3): 6 candidates per agent, validation seeds
+   2030-2039, regimes R0, R1, R2c, R3c, 20 episodes (240 runs per agent). To confirm or change.
+2. **Reading of checklist 3.1**: `Ccum` over the complete episode (no window), plus run-level totals. To confirm.
+3. **D1 on 60 validation seeds**: to run on a machine with more cores ([agents.md](agents.md), section 11). Until then D1 is
+   met on 6 seeds only.
 
 Still to define when the agents exist: the alert threshold of each trigger (tuned on validation seeds),
 the identification measure of prediction D, and the time-to-goal metric of prediction E over several episodes.
@@ -57,7 +57,7 @@ the identification measure of prediction D, and the time-to-goal metric of predi
 
 ## Next
 
-1. Checklist 2.3: the headroom per regime (oracle against frozen, criterion D1) on the 30 validation seeds; first run on 6 seeds in [agents.md](agents.md), section 10 (D1 not met, see open decisions).
+1. Checklist 2.3: confirm D1 on the 60 validation seeds (6-seed result under DEV-1: met, R3c +58%, in [agents.md](agents.md), section 11).
 2. Build Agent 1 (perceptual alert) and Agent 2 (prediction error, both predicting `n`).
 3. Stage 1 of the checklist; then validation beyond the toy world.
 

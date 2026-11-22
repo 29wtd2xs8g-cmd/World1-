@@ -17,7 +17,10 @@ torch.set_num_threads(1)
 @dataclass(frozen=True)
 class AgentParams:
     lam: float = 0.1            # weight of predicted damage against time
-    margin_frac: float = 1.0    # a route is allowed if its predicted damage is below margin_frac * b_hat (1.0 = the whole margin)
+    # A route is allowed if its predicted damage is below margin_frac * b_hat. 0.7 is protocol deviation DEV-1
+    # (docs/protocol_deviations.md, 2026-11-22): fixed a priori, never tuned, same for every agent compared.
+    # 1.0 (the whole margin) is the first protocol; it is kept reproducible by passing margin_frac=1.0.
+    margin_frac: float = 0.7
     v_cruise: float = 0.9       # m/s, speed used to turn lengths into times
     horizon: int = 20           # planning steps
     samples: int = 256

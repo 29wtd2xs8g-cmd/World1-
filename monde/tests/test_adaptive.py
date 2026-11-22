@@ -145,10 +145,11 @@ def test_oracle_reads_the_true_parameters_and_avoids_a_route_that_became_too_cos
     assert agent.route == "B"                                                         # A would predict 3 x 1.5 > D
 
 
-def test_margin_frac_tightens_the_route_constraint_and_defaults_to_the_whole_margin():
+def test_margin_frac_tightens_the_route_constraint_and_defaults_to_0_7():
     from toyworld.agent import AgentParams
     cfg = WorldConfig()
-    whole = BaselineAgent(AnalyticModel(cfg), cfg, AgentParams())                       # margin_frac = 1.0
+    assert AgentParams().margin_frac == 0.7                                             # DEV-1: the default for all agents
+    whole = BaselineAgent(AnalyticModel(cfg), cfg, AgentParams(margin_frac=1.0))        # the first protocol
     buffered = BaselineAgent(AnalyticModel(cfg), cfg, AgentParams(margin_frac=0.6))
     assert whole.route_costs(2.0)["A"][3]                                               # A predicts about 1.5 < 2.0
     assert not buffered.route_costs(2.0)["A"][3]                                        # 1.5 >= 0.6 * 2.0
