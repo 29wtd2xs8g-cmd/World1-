@@ -46,7 +46,7 @@ written to disk. Comparisons are paired over seeds.
 | Item | Value (identical for every agent) |
 |---|---|
 | Candidate configurations | 6 |
-| Tuning seeds | `VALIDATION_SEEDS[30:40]` (10, apart from the headroom seeds 2000-2005) |
+| Tuning seeds | `VALIDATION_SEEDS[30:40]` (10 seeds, 2030-2039) |
 | Regimes | R0, R1 (false alarms), R2c, R3c (lethal) |
 | Episodes per run | 20 |
 | Runs per agent | 6 x 10 x 4 = 240 (4,800 episodes) |
@@ -57,7 +57,13 @@ written to disk. Comparisons are paired over seeds.
 - The revision recipe (fine-tuning budget) is common to all adaptive agents (decision D2). Frozen and oracle have nothing
   to tune.
 
-This budget is a proposal fixed before any trigger exists; change it now or never.
+- The 60-seed run of criterion D1 contains the tuning seeds, which is harmless: it involves only the references (frozen,
+  oracle, always-adapting), which are never tuned. Any comparison of the tuned Agents 1 and 2 on validation seeds leaves
+  the ten tuning seeds out (50 seeds left); the final comparison is on the test seeds.
+- The candidate thresholds are not hand-picked: each is defined by the false-alarm rate per nominal episode it would
+  have had (1, 2, 5, 10, 20 and 40%), measured on nominal runs of calibration seeds ([agents.md](agents.md), section 12).
+
+This budget was confirmed on 2026-11-22, before any trigger was run.
 
 ## 3.4 Statistics
 

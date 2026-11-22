@@ -242,5 +242,53 @@ intervals only describe seed-to-seed spread; the verdict has to be confirmed on 
 
 **To confirm D1 on 60 seeds** (about 11 minutes per seed on 2 cores, so run it on a machine with more workers):
 
-    PYTHONPATH=. python scripts/headroom.py run results/baseline.pt 60 <workers> 0.7 all
-    PYTHONPATH=. python scripts/headroom.py summary 0.7
+    bash scripts/run_d1_60.sh <workers>
+
+The script is resumable, sets one thread per worker, and writes `results/summary_rho0.7_60seeds.txt`.
+
+## 12. Agents 1 and 2: the two triggers
+
+Agents 1 and 2 are the same agent (model, planner, revision recipe, response to an alert; sections 2, 9). Only the trigger
+differs ([toyworld/detectors.py](../toyworld/detectors.py)). Each trigger reads one `StepRecord` per step (observable
+quantities and the agent's own model, nothing else), updates one scalar statistic, and alerts when it exceeds one
+threshold. The threshold is the only tuned parameter of each agent.
+
+**Agent 1, perceptual alert** (`HarmExcessTrigger`). Harm felt beyond what the model predicted, as a fraction of the margin
+left:
+
+    E[t]    = dt * sum over s <= t of (n_obs[s] - n_pred[s])        (within the episode)
+    stat[t] = E[t] / max(b_hat[t], 0.01 * D),        b_hat[t] = D - dt * sum of n_obs
+
+The coupling to the margin is the division by `b_hat`: the same excess is tolerated when the margin is large and alerts
+when it is nearly spent. It reads the nociceptive channel only. `n_pred` comes from the model's nociception head, which
+learned the floor of `n`, so the floor cancels in the excess (the open item "debiasing the n floor" does not affect
+this agent).
+
+**Agent 2, prediction error** (`CusumTrigger`). One-sided CUSUM of the standardised one-step prediction error over both heads
+of the model (velocity change and nociception), so that it is not blind to cost drift (section 2 of research.md):
+
+    s[t] = ( |dv_resid|^2 / sigma_v^2 + (n_obs - n_pred)^2 / sigma_n^2 ) / 3 - 1
+    S[t] = max(0, S[t-1] + s[t] - k),        k = 0.5 (fixed, not tuned)
+
+`sigma_v` and `sigma_n` are the nominal residual scales of the pretrained model. It ignores the margin.
+
+**Nominal reference** (`toyworld/nominal.py`, `scripts/calibrate_triggers.py`, result in `protocol/nominal_reference.json`).
+Computed once on the pretrained model, in regime R0 (no drift), on calibration seeds 1000-1009 (200 episodes, 19,645 steps):
+`sigma_v` = 0.0435 and `sigma_n` = 0.0759. The file carries the hash of the model; the tuning script refuses another one.
+
+**Threshold grid.** A candidate is defined by the false-alarm rate per nominal episode it would have had: the threshold is the
+(1 - rate) quantile of the per-episode peak of the statistic on those 200 episodes. The same six rates serve both agents,
+so neither grid is hand-picked and the two are comparable.
+
+| False-alarm rate per nominal episode | 1% | 2% | 5% | 10% | 20% | 40% |
+|---|---|---|---|---|---|---|
+| Agent 1, threshold on `stat` | 0.199 | 0.183 | 0.134 | 0.114 | 0.078 | 0.045 |
+| Agent 2, threshold on `S` | 15.47 | 13.67 | 11.28 | 10.03 | 8.14 | 5.51 |
+
+**Tuning.** `scripts/tune_triggers.py` gives each agent the budget of [protocol.md](protocol.md), section 3.3 (6 candidates,
+validation seeds 2030-2039, regimes R0, R1, R2c, R3c, 20 episodes, score `metrics.tuning_score`); the chosen thresholds go to
+`protocol/trigger_thresholds.json`. An agent can be tuned once only (the ledger refuses a second tuning).
+
+**What this design does not decide.** Variants of Agent 2 (raw threshold on the error, velocity channel only, value-based
+trigger) are ablations to pre-register before they are run. The rates are in-sample on 200 episodes, so the 1% level rests
+on two episodes: it is a coarse candidate, not a calibrated one.

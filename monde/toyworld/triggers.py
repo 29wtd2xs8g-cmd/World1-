@@ -43,6 +43,9 @@ class Trigger:
         """True = alert now. Not called any more in an episode after its first alert."""
         return False
 
+    def end_episode(self):
+        """Called once when an episode ends, before `revise_at_end` (and also for the oracle)."""
+
     def revise_at_end(self, alerted: bool) -> bool:
         """Default: revise when the episode contained an alert."""
         return alerted

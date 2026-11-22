@@ -46,8 +46,7 @@ the headroom per regime (2.3), measured by `scripts/headroom.py` (see the result
 3. **D1 on 60 validation seeds**: to run on a machine with more cores ([agents.md](agents.md), section 11). Until then D1 is
    met on 6 seeds only.
 
-Still to define when the agents exist: the alert threshold of each trigger (tuned on validation seeds),
-the identification measure of prediction D, and the time-to-goal metric of prediction E over several episodes.
+Still to define: the identification measure of prediction D, and the time-to-goal metric of prediction E over several episodes.
 
 ## Known limits
 
@@ -58,7 +57,7 @@ the identification measure of prediction D, and the time-to-goal metric of predi
 ## Next
 
 1. Checklist 2.3: confirm D1 on the 60 validation seeds (6-seed result under DEV-1: met, R3c +58%, in [agents.md](agents.md), section 11).
-2. Build Agent 1 (perceptual alert) and Agent 2 (prediction error, both predicting `n`).
+2. Agents 1 and 2 are built ([agents.md](agents.md), section 12); the nominal reference is computed. Next: tune their thresholds (`scripts/tune_triggers.py`, about 480 runs, to run on the Mac once the 60-seed D1 run is over), then the comparison on validation seeds without the tuning seeds.
 3. Stage 1 of the checklist; then validation beyond the toy world.
 
 Reading list before agents: stress-gated plasticity (arXiv 2602.18581), the viability-variable paper

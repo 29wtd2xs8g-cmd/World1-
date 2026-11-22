@@ -86,6 +86,7 @@ def run_agent(regime, seed, model, trigger, oracle=False, n_episodes=20, revisio
             done = bool(term or trunc)
             if retreating and np.linalg.norm(obs[0:2] - x0) <= cfg.r0:
                 done = aborted = True
+        trigger.end_episode()
         tr = info["truth"]
         rev = None
         if not oracle and trigger.revise_at_end(alert_step is not None):

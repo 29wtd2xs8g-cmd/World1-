@@ -20,7 +20,7 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 ## Install and test
 
     pip install -r requirements.txt
-    python -m pytest -q                        # 60 tests, about 1 min
+    python -m pytest -q                        # 76 tests, about 2 min
     PYTHONPATH=. python scripts/calibrate.py   # measures C1 and D = 2*C1
     PYTHONPATH=. python scripts/explore_regimes.py 12   # scripted agent, 8 regimes, before/after drift
     PYTHONPATH=. python scripts/train_baseline.py       # pretrains the world model (about 1 min)
@@ -30,6 +30,9 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
     PYTHONPATH=. python scripts/tune_revision.py results/baseline.pt 2        # revision budget, calibration seeds (about 6 min)
     PYTHONPATH=. python scripts/headroom.py run results/baseline.pt 6 2      # oracle and always-adapting, harmful regimes (about 35 min)
     PYTHONPATH=. python scripts/headroom.py summary                          # headroom per regime and criterion D1
+    bash scripts/run_d1_60.sh 8                                              # D1 on the 60 validation seeds under DEV-1 (resumable, about 2-3 h on 8 cores)
+    PYTHONPATH=. python scripts/calibrate_triggers.py results/baseline.pt 2  # nominal reference of Agents 1 and 2 (about 6 min)
+    PYTHONPATH=. OMP_NUM_THREADS=1 python scripts/tune_triggers.py results/baseline.pt 8   # thresholds of Agents 1 and 2, equal budget (480 runs)
 
 ## Use
 
@@ -67,13 +70,15 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 | `toyworld/data.py` | pretraining data collected in the nominal world |
 | `toyworld/agent.py` | `BaselineAgent`: route choice + CEM model-predictive control |
 | `toyworld/triggers.py` | trigger interface: `StepRecord`, `Trigger`, `NeverTrigger`, `AlwaysTrigger` |
+| `toyworld/detectors.py` | Agent 1 (`HarmExcessTrigger`, harm excess over remaining margin) and Agent 2 (`CusumTrigger`, prediction error), `Recorder` |
+| `toyworld/nominal.py` | nominal reference: residual scales and threshold grids by false-alarm rate |
 | `toyworld/revision.py` | revision by fine-tuning on the window of the last episode (`RevisionParams`) |
 | `toyworld/adaptive.py` | `run_agent`: one agent, one trigger (or the oracle), one full run; retreat on alert |
 | `toyworld/metrics.py` | evaluation rules: outcome table (failure first), `Ccum` over successes, run totals, paired bootstrap, Holm |
 | `toyworld/tuning.py` | `tune`: the same tuning budget for every tunable agent, ledger and equality check |
 | `protocol/` | test-seed ledger (empty until the final study) and tuning ledger, tracked by git |
 | `archive/` | exact data of runs that motivated a protocol deviation |
-| `tests/` | 60 tests: dynamics, geometry, damage, retreat, leaks, every regime, world model, agent, triggers, revision, oracle, seeds, metrics, protocol |
+| `tests/` | 76 tests: dynamics, geometry, damage, retreat, leaks, every regime, world model, agent, triggers, revision, oracle, seeds, metrics, protocol, Agents 1 and 2 |
 | `scripts/` | calibration of `D`, exploration of the regimes, baseline training and evaluation, revision budget, headroom |
 | `docs/` | research design, world specification, regimes and results, status |
 
