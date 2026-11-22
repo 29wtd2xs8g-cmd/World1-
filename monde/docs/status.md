@@ -40,11 +40,9 @@ the headroom per regime (2.3), measured by `scripts/headroom.py` (see the result
 
 ## Open decisions
 
-1. **Tuning budget for the compared agents** ([protocol.md](protocol.md), section 3.3): 6 candidates per agent, validation seeds
-   2030-2039, regimes R0, R1, R2c, R3c, 20 episodes (240 runs per agent). To confirm or change.
-2. **Reading of checklist 3.1**: `Ccum` over the complete episode (no window), plus run-level totals. To confirm.
-3. **D1 on 60 validation seeds**: to run on a machine with more cores ([agents.md](agents.md), section 11). Until then D1 is
-   met on 6 seeds only.
+None blocking. Confirmed on 2026-11-22: the tuning budget ([protocol.md](protocol.md), section 3.3) and the reading of
+checklist 3.1 (`Ccum` over the complete episode, plus run-level totals). D1 is met on the 60 validation seeds
+([agents.md](agents.md), section 11.1).
 
 Still to define: the identification measure of prediction D, and the time-to-goal metric of prediction E over several episodes.
 
@@ -56,7 +54,7 @@ Still to define: the identification measure of prediction D, and the time-to-goa
 
 ## Next
 
-1. Checklist 2.3: confirm D1 on the 60 validation seeds (6-seed result under DEV-1: met, R3c +58%, in [agents.md](agents.md), section 11).
+1. Checklist 2.3 done: D1 met on the 60 validation seeds under DEV-1 (R3c +59%, [agents.md](agents.md), section 11.1).
 2. Agents 1 and 2 are built ([agents.md](agents.md), section 12); the nominal reference is computed. Next: tune their thresholds (`scripts/tune_triggers.py`, about 480 runs, to run on the Mac once the 60-seed D1 run is over), then the comparison on validation seeds without the tuning seeds.
 3. Stage 1 of the checklist; then validation beyond the toy world.
 

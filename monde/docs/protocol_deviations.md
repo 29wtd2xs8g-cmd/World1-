@@ -70,5 +70,8 @@ of R3d and R3c), computed on the amended baseline. The failure-first reading of 
 beside it. Run 1 stays in the record as the first protocol.
 
 **Result under the amended baseline** (6 validation seeds, [agents.md](agents.md), section 11): D1 is met, with four regimes
-above 15% (R2c, R2l, R3c, R3l), R3c among them at +58.1% (95% interval +53.6 to +62.0; failure 0.11 to 0.00). It still has to be
-confirmed on the 60 validation seeds.
+above 15% (R2c, R2l, R3c, R3l), R3c among them at +58.1% (95% interval +53.6 to +62.0; failure 0.11 to 0.00). 
+
+**Confirmed on the 60 validation seeds (2026-11-23, [agents.md](agents.md), section 11.1):** D1 is met, with the same four
+regimes above 15% (R2c +87.3%, R3c +58.8% [57.6, 60.0], R2l +29.5%, R3l +22.9%); R2d +5.1% and R3d +1.6% stay below.
+Failure rate in R3c: 0.14 (frozen) to 0.00 (oracle). No test seed was used.

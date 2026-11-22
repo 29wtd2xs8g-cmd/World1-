@@ -240,11 +240,42 @@ intervals only describe seed-to-seed spread; the verdict has to be confirmed on 
    post-`tau` `Ccum`). (50 steps, lr 1e-3) stays the best: mean 1.79 (R2d 2.73, R2c 0.84), against 2.06 for (150, 3e-3), 2.68 for
    (150, 1e-3) and 3.03 without revision. The always-adapting reference therefore does not need to be redone.
 
-**To confirm D1 on 60 seeds** (about 11 minutes per seed on 2 cores, so run it on a machine with more workers):
+### 11.1 Confirmation on the 60 validation seeds (2026-11-23)
 
-    bash scripts/run_d1_60.sh <workers>
+Same protocol (`margin_frac` 0.7, every agent with the current code), 60 paired validation seeds 2000-2059, 1,080 jobs, post-`tau`
+episodes, means over seeds, 95% intervals by paired bootstrap (5,000 replications). Table and data pointer in
+`archive/2026-11-23_d1_60seeds_margin0.7/`. No test seed was used.
 
-The script is resumable, sets one thread per worker, and writes `results/summary_rho0.7_60seeds.txt`.
+| Regime | Failure frozen / oracle / always | Success frozen / oracle / always | Timeout (always) | `Ccum` over successes (frozen / oracle / always) |
+|---|---|---|---|---|
+| R2d | 0.65 / 0.36 / 0.60 | 0.35 / 0.64 / 0.40 | 0.00 | 2.65 / 2.59 / 2.24 |
+| R2c | 1.00 / 0.00 / 0.17 | 0.00 / 1.00 / 0.83 | 0.00 | none / 0.40 / 0.40 |
+| R2l | 0.80 / 0.01 / 0.48 | 0.18 / 0.99 / 0.22 | 0.30 | 2.39 / 2.04 / 2.08 |
+| R3c | 0.14 / 0.00 / 0.01 | 0.86 / 1.00 / 0.99 | 0.00 | 2.24 / 0.96 / 1.00 |
+| R3l | 0.49 / 0.00 / 0.16 | 0.51 / 1.00 / 0.72 | 0.13 | 1.85 / 1.87 / 1.76 |
+| R3d (no mortality) | 0 / 0 / 0 | 1 / 1 / 1 | 0.00 | 1.66 / 1.63 / 1.62 |
+
+| Regime | Failure, frozen minus oracle (points) | D1: `Ccum` over all episodes | Always-adapting gain |
+|---|---|---|---|
+| R2d | +28.6 [+25.8, +31.5] | +5.1% [+4.8, +5.4] | +6.0% |
+| R2c | +100.0 [+100.0, +100.0] | +87.3% [+87.3, +87.3] | +72.1% |
+| R2l | +79.6 [+76.2, +82.9] | +29.5% [+28.7, +30.3] | +27.9% |
+| R3c | +13.5 [+11.3, +15.8] | **+58.8%** [+57.6, +60.0] | +56.6% |
+| R3l | +48.5 [+45.7, +51.5] | +22.9% [+21.9, +23.8] | +26.6% |
+| R3d | 0 | +1.6% [+1.4, +1.7] | +2.4% |
+
+**Criterion D1 is met on 60 seeds**: four regimes at 15% or more (R2c, R2l, R3c, R3l), R3c among them. The 6-seed result
+(section 11) is confirmed within about one point everywhere.
+
+Reading notes.
+
+1. In R3c the always-adapting agent recovers almost all the oracle's gain (+56.6% against +58.8%, failure 0.01 against 0.00).
+   Against that reference, a trigger can win on the cost of revision and on the speed of the response, not on the damage
+   avoided. The regimes where always-adapting stays far from the oracle in failures are R2c (0.17 against 0.00), R2d (0.60
+   against 0.36), R2l (0.48 against 0.01) and R3l (0.16 against 0.00): these are where a good trigger has room to show.
+2. R2l and R3l: the always-adapting `Ccum` gain is partly timeouts (30% and 13% of the episodes). In R3l it exceeds the
+   oracle's (+26.6% against +22.9%) for that reason; it is not a better outcome.
+3. R3d keeps a damage-only role (+1.6% headroom, no failure for any agent), read on `Ccum`, revision cost and false alarms.
 
 ## 12. Agents 1 and 2: the two triggers
 
