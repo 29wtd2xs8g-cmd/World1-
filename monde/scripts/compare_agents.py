@@ -7,8 +7,10 @@
 to start without them. It plays Agent 1 and Agent 2 in the eight regimes, and the frozen and always-adapting references
 in R0 and R1 (the harmful regimes take their references from the D1 file `results/headroom_rho0.7.jsonl`). Results are
 appended to `results/compare.jsonl`, and finished jobs are skipped on a relaunch. Never touches the test seeds.
-`summary` prints outcomes first (docs/protocol.md, section 3.1), then the paired contrasts and the literal verdicts of
-predictions B and C.
+`summary` prints outcomes first (docs/protocol.md, section 3.1), then the paired contrasts and the verdict of
+prediction B (decision D9). The detection verdict (prediction C) is read at matched false-alarm rates by
+`scripts/replay_detectors.py`; the closed-loop delays printed here are descriptive.
+`summary` refuses to run until decision D9 is recorded in docs/protocol.md (section 3.6).
 """
 import json
 import multiprocessing as mp
@@ -18,8 +20,9 @@ from pathlib import Path
 import numpy as np
 
 from toyworld.adaptive import run_agent
-from toyworld.compare import (AGENTS, COMPARISON_SEEDS, HARMFUL, REGIMES, calm_false_alarm_gap, contrast, holm_adjust,
-                              load_runs, load_thresholds, make_trigger, seed_vectors, verdict_b, verdict_c)
+from toyworld.compare import (AGENTS, B_REGIMES, COMPARISON_SEEDS, HARMFUL, REGIMES, calm_false_alarm_gap, contrast,
+                              holm_adjust, load_runs, load_thresholds, make_trigger, require_d9_recorded, seed_vectors,
+                              verdict_b)
 from toyworld.metrics import LETHAL, family
 from toyworld.model import WorldModel
 from toyworld.nominal import NominalReference, model_hash
@@ -66,6 +69,10 @@ def _fmt(c, key):
 
 
 def summary(refs=REFS):
+    try:
+        require_d9_recorded()
+    except RuntimeError as e:
+        sys.exit(str(e))
     runs = load_runs(OUT)
     for k, v in load_runs(refs).items():
         runs.setdefault(k, v)
@@ -89,24 +96,32 @@ def summary(refs=REFS):
     hf = holm_adjust(cs, "failure_gap", LETHAL)
     hc = holm_adjust(cs, "ccum_gap_rel", HARMFUL)
     cgap = calm_false_alarm_gap(runs, a, b, seeds)
+    vb = verdict_b(cs)
     print(f"\nAgent 1 against Agent 2 (positive = Agent 1 better); Holm over the lethal regimes (failure) and the harmful ones (Ccum)")
-    print(f"{'regime':6s} | {'failure gap (points)':>29s} {'Holm p':>7s} | {'Ccum gap (relative)':>29s} {'Holm p':>7s} | B")
+    print(f"{'regime':6s} | {'failure gap (points)':>29s} {'Holm p':>7s} | {'Ccum gap (relative)':>29s} {'Holm p':>7s} | "
+          f"{'success A1 - A2':>15s} | B")
     for c in cs:
         if c["regime"] in ("R0", "R1"):
             continue
+        tag = ("MET" if vb["met"][c["regime"]] else "not met") if c["regime"] in B_REGIMES else "no verdict"
         print(f"{c['regime']:6s} | {_fmt(c, 'failure_gap'):>29s} {hf.get(c['regime'], float('nan')):7.3f} | "
-              f"{_fmt(c, 'ccum_gap_rel'):>29s} {hc.get(c['regime'], float('nan')):7.3f} | {'MET' if verdict_b(c) else 'not met'}")
-    print(f"\nDetection (prediction C): delay in steps from the onset episode, censored at the end of the run")
-    print(f"{'regime':6s} | {'median A1':>9s} {'cens':>5s} | {'median A2':>9s} {'cens':>5s} | {'gap A2 - A1 [95% CI]':>30s} | C")
+              f"{_fmt(c, 'ccum_gap_rel'):>29s} {hc.get(c['regime'], float('nan')):7.3f} | "
+              f"{c['success_a'] - c['success_b']:+15.3f} | {tag}")
+    print(f"\nPREDICTION B (R2c and R3c, Holm over the two; Ccum on all post-onset episodes): "
+          f"{'SUPPORTED' if vb['supported'] else 'NOT SUPPORTED'} on the validation seeds")
+    print(f"  Holm p, failure gap: " + "  ".join(f"{g} {vb['holm_failure'][g]:.3f}" for g in B_REGIMES)
+          + "   Ccum gap: " + "  ".join(f"{g} {vb['holm_ccum'][g]:.3f}" for g in B_REGIMES))
+    print(f"\nClosed-loop detection, DESCRIPTIVE ONLY (tuned thresholds, unequal false-alarm rates; the verdict of C is in "
+          f"replay_detectors.py): delay in steps from the onset episode, censored at the end of the run")
+    print(f"{'regime':6s} | {'median A1':>9s} {'cens':>5s} | {'median A2':>9s} {'cens':>5s} | {'gap A2 - A1 [95% CI]':>30s}")
     for c in cs:
         if c["regime"] in HARMFUL:
             print(f"{c['regime']:6s} | {c['delay_a']:9.0f} {c['censored_a']:5.2f} | {c['delay_b']:9.0f} {c['censored_b']:5.2f} | "
-                  f"{_fmt(c, 'delay_gap'):>30s} | {'MET' if verdict_c(c, cgap) else 'not met'}")
+                  f"{_fmt(c, 'delay_gap'):>30s}")
     fa = {c["regime"]: (c["false_alarm_a"], c["false_alarm_b"]) for c in cs}
     print(f"\nFalse alarms per episode (Agent 1 / Agent 2): " + "  ".join(f"{g} {fa[g][0]:.3f}/{fa[g][1]:.3f}" for g in REGIMES))
-    print(f"Calm-regime gap used by C (R0 and R1, Agent 2 minus Agent 1): {cgap:+.3f}")
-    print("\nReadings of 'X% lower' (decision D9, to confirm): Ccum as a relative gap, failure and false alarms in points. "
-          "Predictions A, D and E are not computed here.")
+    print(f"Calm-regime gap (R0 and R1, Agent 2 minus Agent 1): {cgap:+.3f}")
+    print("\nRegimes outside R2c and R3c are reported without a verdict. Predictions A, D and E are not computed here.")
 
 
 if __name__ == "__main__":

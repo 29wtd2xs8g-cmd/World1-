@@ -75,3 +75,48 @@ checklist 0.2. With N > 50 seeds the final study reports intervals on every figu
 
 The report has a section "Where it does not work", even a short one. R3d (no failure to avoid) and R3l (not maskable
 with the frozen agent) are already in it.
+
+## 3.6 Readings of predictions B and C (decision D9)
+
+D9-STATUS: RECORDED (2026-11-23, 16:31 Paris, on the author's go)
+
+The thresholds of predictions B and C ([research.md](research.md), section 3) are fixed here, on the validation seeds, before
+any result of the Agent 1 against Agent 2 comparison was read and before any test seed was opened (the ledger of test seeds is
+empty). The comparison run on the validation seeds had started when this section was written; its output had not been looked at.
+The final verdict is given on the test seeds, with the same rules. `summary` in `scripts/compare_agents.py` and
+`scripts/replay_detectors.py` refuse to run unless the line above is present.
+
+**Prediction B (cumulative damage).** Evaluated on R2c and R3c only, the regimes where the drift acts on the cost alone and the
+margin is what the alert is about. In each of them, Agent 1 against Agent 2 (paired over seeds):
+
+1. mean `Ccum` at least 15% lower, as a relative gap, over all post-onset episodes (every outcome included);
+2. failure rate at least 10 percentage points lower;
+3. guard: the success rate of Agent 1 is not more than 5 points below that of Agent 2 (an agent that retreats all the time lowers
+   `Ccum` without doing the task). `Ccum` over the successful episodes is reported next to it;
+4. both gaps significant: Holm-adjusted two-sided bootstrap p below 0.05, Holm over the two regimes, separately for the `Ccum` gap and
+   the failure gap.
+
+B is supported iff the four conditions hold in both regimes. The other regimes (R2d, R2l, R3l, R3d, R0, R1) are reported with the
+same tables and no verdict; they feed the section "Where it does not work". Note recorded in advance: in R3c the frozen agent fails
+in 14% of post-onset episodes (D1, 60 seeds), so the failure condition has little room there.
+
+**Prediction C (detection).** The delay is compared at equal false-alarm rates, because the tuned thresholds correspond to about 10%
+(Agent 1) and 1% (Agent 2) false alarms per nominal episode, and a detector that fires more easily is faster by construction. The
+comparison is a replay on the trajectories of the frozen agent (`toyworld/replay.py`, `scripts/replay_detectors.py`): the same
+trajectories for both detectors, at the six grid levels of `protocol/nominal_reference.json` (1, 2, 5, 10, 20, 40% nominal
+false-alarm rate, the same rates for both agents). The verdict is read at the **5% level**; the curve at the six levels is reported.
+
+- Regimes: the five lethal regimes R2d, R2c, R2l, R3c, R3l for the delay; R3d is reported, not judged; R0 and R1 for false alarms.
+- Delay: one value per run, in environment steps from the start of the onset episode to the first alert, right-censored at the end of
+  the run (D4); median over seeds; paired bootstrap interval of the median gap (Agent 2 minus Agent 1).
+- A regime counts when: the median delay of Agent 1 is at least 10 steps shorter; the Holm-adjusted p of the gap is below 0.05 (Holm
+  over the five regimes); and the median of Agent 1 is not censored (fewer than half of its runs end without an alert). A censored
+  median of Agent 2 alone leaves the gap a lower bound and does not disqualify the regime.
+- C is supported iff the criterion holds in at least 3 of the 5 lethal regimes, and the measured false-alarm rates of the two
+  agents differ by at most 5 points, in R0 and in R1 (the matched rates are measured, not assumed).
+
+**Closed-loop numbers.** The delays and false alarms of the runs at the tuned thresholds (`compare_agents.py summary`) are
+reported as descriptive; they do not decide C.
+
+**Aggregation.** `Ccum` and the outcome rates are averaged over all episodes from the onset (R0: all episodes), one value per seed;
+seeds are the unit of the paired bootstrap.

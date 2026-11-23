@@ -1,8 +1,8 @@
 """Comparison of Agent 1 and Agent 2 on validation seeds (checklist 4; docs/agents.md, section 13).
 
 Pure functions: the seeds of the comparison, the guarded loading of the tuned thresholds, per-seed vectors, paired
-contrasts with bootstrap intervals, and the literal verdicts of predictions B and C. `scripts/compare_agents.py` runs and
-prints.
+contrasts with bootstrap intervals, and the verdict of prediction B (decision D9). The verdict of prediction C is read at
+matched false-alarm rates in `replay.py`. `scripts/compare_agents.py` runs and prints.
 
 The comparison never uses the tuning seeds (they chose the thresholds) and never the test seeds.
 """
@@ -12,12 +12,14 @@ from pathlib import Path
 import numpy as np
 
 from .detectors import CusumTrigger, HarmExcessTrigger
-from .metrics import (LETHAL, detection, false_alarms, holm, outcome_table, paired_bootstrap_stat, post_tau)
+from .metrics import detection, false_alarms, holm, outcome_table, paired_bootstrap_stat, post_tau
 from .nominal import NominalReference
 from .seeds import VALIDATION_SEEDS
 from .tuning import BUDGET, LEDGER, check_equal_budgets
 
 THRESHOLDS = Path(__file__).resolve().parent.parent / "protocol" / "trigger_thresholds.json"
+PROTOCOL = Path(__file__).resolve().parent.parent / "docs" / "protocol.md"
+D9_MARKER = "D9-STATUS: RECORDED"
 COMPARISON_SEEDS = tuple(s for s in VALIDATION_SEEDS if s not in BUDGET.seeds)      # 50 seeds
 REGIMES = ("R0", "R1", "R2d", "R2c", "R2l", "R3d", "R3c", "R3l")
 HARMFUL = ("R2d", "R2c", "R2l", "R3d", "R3c", "R3l")
@@ -39,6 +41,14 @@ def load_thresholds(path=THRESHOLDS, ledger=LEDGER):
     if not set(AGENTS) <= tuned:
         raise ValueError(f"the tuning ledger does not list both agents (found {sorted(tuned)})")
     return {a: float(chosen[a]["threshold"]) for a in AGENTS}
+
+
+def require_d9_recorded(path=PROTOCOL):
+    """The readings of predictions B and C (decision D9) must be written in protocol.md before any verdict is computed, so
+    that no result can have shaped them. The line `D9-STATUS: RECORDED` of section 3.6 is the author's go."""
+    path = Path(path)
+    if not path.exists() or D9_MARKER not in path.read_text():
+        raise RuntimeError("decision D9 is not recorded in docs/protocol.md (section 3.6): no summary before it is")
 
 
 def make_trigger(agent, thresholds, ref: NominalReference):
@@ -106,6 +116,7 @@ def contrast(runs, a, b, regime, seeds, reps=5000):
     out = {"regime": regime, "a": a, "b": b, "n": len(seeds),
            "failure_a": float(va["failure"].mean()), "failure_b": float(vb["failure"].mean()),
            "ccum_a": float(va["ccum"].mean()), "ccum_b": float(vb["ccum"].mean()),
+           "success_a": float(va["success"].mean()), "success_b": float(vb["success"].mean()),
            "failure_gap": paired_bootstrap_stat(va["failure"], vb["failure"], mean_gap, reps),
            "ccum_gap_rel": paired_bootstrap_stat(va["ccum"], vb["ccum"], rel_gap, reps),
            "false_alarm_a": fa_rate(va), "false_alarm_b": fa_rate(vb),
@@ -124,22 +135,31 @@ def holm_adjust(contrasts, key, regimes):
     return {c["regime"]: p for c, p in zip(sel, adj)}
 
 
-# Provisional readings of the thresholds of predictions B and C (docs/research.md section 3). "X% lower" is read as a
-# relative gap for the damage and as percentage points for the failure rate; decision D9 has to confirm it.
+# Readings of the thresholds of prediction B (decision D9, docs/protocol.md section 3.6). "X% lower" is a relative gap for
+# the damage and percentage points for the failure rate. Prediction C is read in `replay.py` (matched false-alarm rates).
+B_REGIMES = ("R2c", "R3c")          # drift that acts on the cost only: the margin is what the alert is about
 B_MIN_CCUM_REL, B_MIN_FAILURE_POINTS = 0.15, 0.10
-C_MIN_DELAY_STEPS, C_MIN_FALSE_ALARM_POINTS = 10.0, 0.05
+B_MAX_SUCCESS_DROP = 0.05           # guard: Agent 1 may not succeed more than 5 points less often than Agent 2
+ALPHA = 0.05
 
 
-def verdict_b(c):
-    """Prediction B, literal: mean Ccum at least 15% lower AND failure rate at least 10 points lower (lethal regimes).
-    In a regime without mortality only the damage criterion applies."""
-    ok_c = c["ccum_gap_rel"]["value"] >= B_MIN_CCUM_REL
-    if c["regime"] not in LETHAL:
-        return ok_c
-    return ok_c and c["failure_gap"]["value"] >= B_MIN_FAILURE_POINTS
+def b_regime_met(c, holm_p_ccum, holm_p_failure):
+    """One regime of prediction B: mean Ccum (all post-onset episodes) at least 15% lower, failure rate at least 10 points
+    lower, success rate not more than 5 points lower (retreating all the time lowers Ccum without solving the task), and both
+    gaps significant after Holm correction over the regimes of B."""
+    return bool(c["ccum_gap_rel"]["value"] >= B_MIN_CCUM_REL
+                and c["failure_gap"]["value"] >= B_MIN_FAILURE_POINTS
+                and c["success_a"] - c["success_b"] >= -B_MAX_SUCCESS_DROP
+                and holm_p_ccum < ALPHA and holm_p_failure < ALPHA)
 
 
-def verdict_c(c, calm_false_alarm_gap):
-    """Prediction C, literal: median delay at least 10 steps shorter, with a false-alarm rate lower by at least 5 points
-    (`calm_false_alarm_gap` = Agent 2 rate minus Agent 1 rate on R0 and R1)."""
-    return (c["delay_gap"]["value"] >= C_MIN_DELAY_STEPS) and (calm_false_alarm_gap >= C_MIN_FALSE_ALARM_POINTS)
+def verdict_b(contrasts):
+    """Prediction B (D9): supported iff the criterion holds in both R2c and R3c (Holm over the two). The other regimes are
+    reported without a verdict."""
+    sel = [c for c in contrasts if c["regime"] in B_REGIMES]
+    if {c["regime"] for c in sel} != set(B_REGIMES):
+        raise ValueError("verdict B needs the contrasts of R2c and R3c")
+    hc = holm_adjust(sel, "ccum_gap_rel", B_REGIMES)
+    hf = holm_adjust(sel, "failure_gap", B_REGIMES)
+    met = {c["regime"]: b_regime_met(c, hc[c["regime"]], hf[c["regime"]]) for c in sel}
+    return {"met": met, "holm_ccum": hc, "holm_failure": hf, "supported": all(met.values())}

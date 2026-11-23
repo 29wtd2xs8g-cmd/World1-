@@ -359,17 +359,24 @@ ledger, the ledger shows one common budget, and the nominal reference was comput
 regimes, for false alarms); in the six harmful regimes the frozen, oracle and always-adapting references come from the D1 file
 (`results/headroom_rho0.7.jsonl`), same seeds, same code.
 
-**What is reported** (`python scripts/compare_agents.py summary`).
+**What is reported** (`python scripts/compare_agents.py summary`; refuses to run unless D9 is recorded, [protocol.md](protocol.md), section 3.6).
 1. Outcomes first (failure, success, timeout, retreat), then `Ccum` over the successes and over all episodes, revisions per run and
    false alarms per episode, for every agent and regime (rule of [protocol.md](protocol.md), section 3.1).
-2. Paired contrasts Agent 1 against Agent 2, positive meaning Agent 1 better: failure gap in points, relative `Ccum` gap, each with a
-   95% paired bootstrap interval (5,000 replications over seeds). Holm correction over the five lethal regimes for the failure gap,
-   and over the six harmful regimes for the `Ccum` gap.
-3. Detection (prediction C): delay of the first alert after the onset, in steps counted from the start of the onset episode, one value
-   per run, right-censored at the end of the run (decision D4); median per agent, censored fraction, and the paired median gap
-   (Agent 2 minus Agent 1).
-4. False alarms per episode: every alert in R0 and R1, and the alerts before the onset in the other regimes.
-5. The literal verdicts of predictions B and C, under the provisional readings of decision D9 (research.md, section 6).
+2. Paired contrasts Agent 1 against Agent 2, positive meaning Agent 1 better: failure gap in points, relative `Ccum` gap, success gap, each
+   with a 95% paired bootstrap interval (5,000 replications over seeds), Holm-adjusted p over the lethal regimes (failure) and over the six
+   harmful regimes (`Ccum`).
+3. **Prediction B** (D9): R2c and R3c only, Holm over the two, with the success-rate guard; the other regimes carry no verdict.
+4. Closed-loop detection, descriptive only: delay of the first alert after the onset (steps from the start of the onset episode, right-censored at
+   the end of the run, D4) at the tuned thresholds, whose false-alarm rates differ (about 10% against 1% per nominal episode).
+5. False alarms per episode (all alerts in R0 and R1, pre-onset alerts elsewhere).
+
+**Prediction C: matched false-alarm replay** (`scripts/replay_detectors.py`, `toyworld/replay.py`, `tests/test_replay.py`). The frozen agent plays each
+of the eight regimes on the 50 seeds once, with a recorder (400 runs); both statistics are computed along every recorded episode and the first
+crossing of each of the six grid thresholds is stored in `results/replay.jsonl`. The same trajectories therefore serve both detectors at the same
+nominal false-alarm rate. `check` verifies that the replay reproduces the closed-loop runs (frozen rows of R0 and R1 identical; first-episode
+alert step identical at the tuned thresholds). `summary` prints the delays and false alarms at the six levels and the verdict at the 5% level
+(at least 3 of the 5 lethal regimes; censoring rule; measured false alarms matched in R0 and R1). The replay isolates the detector: a false alarm
+never triggers a retreat or a revision in it, which the closed-loop runs do.
 
 Predictions A (resources), D (identification) and E (recovering the goal) are not computed by this script.
 

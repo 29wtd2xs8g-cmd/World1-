@@ -129,13 +129,15 @@ Details in [protocol.md](protocol.md), section 3.1.
 replications over seeds, Holm correction over the announced comparisons, one tuning budget for every tunable agent,
 test seeds opened once through a recorded ledger. Details in [protocol.md](protocol.md), sections 3.2 to 3.4.
 
-**D9. Readings of the thresholds of predictions B and C (PROPOSED 2026-11-23, to confirm before any comparison is run).**
-"X% lower" is ambiguous in the table of section 3. Proposal, used by the provisional verdicts of `toyworld/compare.py`:
-(a) damage: mean `Ccum` of Agent 1 at least 15% lower than Agent 2's, as a relative gap, and the failure rate at least 10
-percentage points lower (lethal regimes; in a regime without mortality only the damage criterion applies); (b) detection: the median
-delay of Agent 1 at least 10 steps shorter, with a false-alarm rate per episode at least 5 percentage points lower than Agent 2's
-on the calm regimes R0 and R1; (c) the delay is measured per run, on all runs of the regime ("on failure episodes" is not used as a
-filter, because it would depend on the agent that is being compared). To be confirmed or amended by the author.
+**D9. Readings of the thresholds of predictions B and C (RECORDED 2026-11-23, before any comparison result was read).**
+"X% lower" was ambiguous in the table of section 3. Decided, in full in [protocol.md](protocol.md), section 3.6:
+(a) B is judged on R2c and R3c, both required: `Ccum` at least 15% lower (relative, all post-onset episodes), failure at least 10 points
+lower, success of Agent 1 not more than 5 points below Agent 2's (guard against winning by retreating), both gaps significant after
+Holm over the two regimes; the other regimes are reported without a verdict. (b) C is judged at equal false-alarm rates, not at the
+tuned thresholds (about 10% against 1% false alarms per nominal episode would confound the delay): replay on frozen trajectories, verdict at
+the 5% level, curve at six levels; median delay at least 10 steps shorter (Holm over the five lethal regimes, Agent 1's median not
+censored) in at least 3 of the 5 lethal regimes, and measured false-alarm rates within 5 points in R0 and R1. (c) The delay is per run, on all
+runs of the regime ("on failure episodes" is not a filter: it would depend on the agent compared), right-censored at the end of the run.
 
 **Amendment of the baseline (DEV-1, 2026-11-22).** After the first measurement of D1, the route rule received a safety
 buffer (`margin_frac` 0.7, for every agent). See [protocol_deviations.md](protocol_deviations.md).

@@ -4,8 +4,8 @@ import json
 import numpy as np
 import pytest
 
-from toyworld.compare import (COMPARISON_SEEDS, calm_false_alarm_gap, contrast, holm_adjust, load_thresholds, seed_vectors,
-                              verdict_b, verdict_c)
+from toyworld.compare import (COMPARISON_SEEDS, calm_false_alarm_gap, contrast, holm_adjust, load_thresholds,
+                              require_d9_recorded, seed_vectors, verdict_b)
 from toyworld.metrics import detection, false_alarms, paired_bootstrap_stat
 from toyworld.seeds import TEST_SEEDS, VALIDATION_SEEDS
 from toyworld.tuning import BUDGET
@@ -81,32 +81,106 @@ def fake_runs(seeds, a_kw, b_kw, regime="R3c", alerts_a=None, alerts_b=None):
     return runs
 
 
-def test_contrast_signs_and_verdict_b():
+def b_runs(seeds, regimes=("R2c", "R3c"), a_kw=None, b_kw=None, a_outcomes=None, b_outcomes=None):
+    """Agent 1 and Agent 2 over the regimes of prediction B. Outcomes: one value for all post-onset episodes."""
+    runs = {}
+    for g in regimes:
+        for s in seeds:
+            runs[("agent1_alert", g, s)] = [row(g, e, 4, outcome=(a_outcomes or {}).get(g, "success") if e >= 4 else "success",
+                                                **(a_kw or {})) for e in range(10)]
+            runs[("agent2_cusum", g, s)] = [row(g, e, 4, outcome=(b_outcomes or {}).get(g, "success") if e >= 4 else "success",
+                                                **(b_kw or {})) for e in range(10)]
+    return runs
+
+
+def b_contrasts(runs, seeds, regimes=("R2c", "R3c")):
+    return [contrast(runs, "agent1_alert", "agent2_cusum", g, seeds, reps=300) for g in regimes]
+
+
+def test_contrast_signs():
     seeds = list(range(20))
-    runs = fake_runs(seeds, {"ccum": 1.0}, {"ccum": 2.0})
+    runs = b_runs(seeds, a_kw={"ccum": 1.0}, b_kw={"ccum": 2.0})
     c = contrast(runs, "agent1_alert", "agent2_cusum", "R3c", seeds, reps=300)
     assert c["ccum_gap_rel"]["value"] == pytest.approx(0.5)             # Agent 1 halves the damage
     assert c["failure_gap"]["value"] == 0.0
-    assert verdict_b(c) is False                                         # lethal regime: failure gap 0 < 10 points
+    assert c["success_a"] == c["success_b"] == 1.0
 
 
-def test_verdict_b_met_when_both_criteria_hold():
+def test_verdict_b_needs_failure_gap_as_well_as_damage():
+    seeds = list(range(20))
+    runs = b_runs(seeds, a_kw={"ccum": 1.0}, b_kw={"ccum": 2.0})        # damage halved, failure gap 0 < 10 points
+    v = verdict_b(b_contrasts(runs, seeds))
+    assert v["supported"] is False and v["met"] == {"R2c": False, "R3c": False}
+
+
+def test_verdict_b_supported_when_both_regimes_meet_every_criterion():
+    seeds = list(range(20))
+    runs = b_runs(seeds, a_kw={"ccum": 1.0}, b_kw={"ccum": 2.0}, b_outcomes={"R2c": "failure", "R3c": "failure"})
+    v = verdict_b(b_contrasts(runs, seeds))
+    assert v["met"] == {"R2c": True, "R3c": True} and v["supported"] is True
+
+
+def test_verdict_b_needs_both_regimes():
+    seeds = list(range(20))
+    runs = b_runs(seeds, a_kw={"ccum": 1.0}, b_kw={"ccum": 2.0}, b_outcomes={"R2c": "failure"})   # R3c: no failure gap
+    v = verdict_b(b_contrasts(runs, seeds))
+    assert v["met"] == {"R2c": True, "R3c": False} and v["supported"] is False
+
+
+def test_verdict_b_success_guard_blocks_a_gain_obtained_by_retreating():
     seeds = list(range(20))
     runs = {}
-    for s in seeds:
-        runs[("agent1_alert", "R3c", s)] = run_rows("R3c", 4, ccum=1.0)
-        runs[("agent2_cusum", "R3c", s)] = run_rows("R3c", 4, ccum=2.0, outcome="failure")
-    c = contrast(runs, "agent1_alert", "agent2_cusum", "R3c", seeds, reps=300)
-    assert c["failure_gap"]["value"] == 1.0 and verdict_b(c) is True
+    for g in ("R2c", "R3c"):
+        for s in seeds:
+            # Agent 1 retreats in every post-onset episode: no failure, little damage, no success either.
+            runs[("agent1_alert", g, s)] = [row(g, e, 4, outcome="retreat" if e >= 4 else "success", ccum=0.5) for e in range(10)]
+            # Agent 2 fails in a third of the post-onset episodes and succeeds in the others.
+            runs[("agent2_cusum", g, s)] = [row(g, e, 4, outcome=("failure" if e % 3 == 0 else "success") if e >= 4 else "success",
+                                                ccum=2.0) for e in range(10)]
+    cs = b_contrasts(runs, seeds)
+    assert all(c["failure_gap"]["value"] >= 0.10 and c["ccum_gap_rel"]["value"] >= 0.15 for c in cs)
+    assert all(c["success_a"] - c["success_b"] < -0.05 for c in cs)
+    assert verdict_b(cs)["supported"] is False
 
 
-def test_delay_gap_and_verdict_c():
+def test_verdict_b_requires_significance_after_holm():
+    rng = np.random.default_rng(3)
+    seeds = list(range(8))
+    runs = {}
+    for g in ("R2c", "R3c"):
+        for s in seeds:                                                 # noisy gap with a large mean but a wide interval
+            runs[("agent1_alert", g, s)] = run_rows(g, 4, ccum=float(rng.uniform(0.0, 2.0)))
+            runs[("agent2_cusum", g, s)] = run_rows(g, 4, ccum=float(rng.uniform(0.0, 2.0)), outcome="failure")
+    cs = b_contrasts(runs, seeds)
+    v = verdict_b(cs)
+    assert all(c["failure_gap"]["value"] == 1.0 for c in cs)
+    assert v["supported"] == (all(p < 0.05 for p in v["holm_ccum"].values())
+                              and all(c["ccum_gap_rel"]["value"] >= 0.15 for c in cs))
+
+
+def test_verdict_b_only_judges_r2c_and_r3c():
+    seeds = list(range(5))
+    runs = b_runs(seeds, regimes=("R2c",))
+    with pytest.raises(ValueError):
+        verdict_b(b_contrasts(runs, seeds, regimes=("R2c",)))
+
+
+def test_closed_loop_delay_gap_is_descriptive():
     seeds = list(range(20))
     runs = fake_runs(seeds, {}, {}, alerts_a={4: 5}, alerts_b={4: 40})
     c = contrast(runs, "agent1_alert", "agent2_cusum", "R3c", seeds, reps=300)
     assert c["delay_gap"]["value"] == 35.0 and c["censored_a"] == 0.0
-    assert verdict_c(c, calm_false_alarm_gap=0.06) is True
-    assert verdict_c(c, calm_false_alarm_gap=0.0) is False               # faster only by firing as often: not enough
+
+
+def test_summaries_wait_for_d9(tmp_path):
+    p = tmp_path / "protocol.md"
+    with pytest.raises(RuntimeError):
+        require_d9_recorded(p)                                          # no file
+    p.write_text("## 3.6\nD9-STATUS: PROPOSED\n")
+    with pytest.raises(RuntimeError):
+        require_d9_recorded(p)
+    p.write_text("## 3.6\nD9-STATUS: RECORDED\n")
+    require_d9_recorded(p)
 
 
 def test_calm_false_alarm_gap():

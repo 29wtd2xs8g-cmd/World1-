@@ -92,3 +92,13 @@ recreated on the commit that does.
 
 Rule from now on: update the folder by unzipping over it (`unzip -o`), never by replacing it, and commit files of `protocol/`
 as soon as they are written.
+
+### INC-2 (2026-11-23): D9 commit and tag created before the content was applied
+
+At 16:58 the commit `95b8f83` ("Record D9 ...") and the tag `d9-recorded` existed, but the working folder still held the earlier
+files: section 3.6 of `protocol.md` was not in them (the overlay of `monde_v6.zip` had not been applied; the old folder had been
+moved to the Trash and put back in between, with no data lost). The tag pointed to an earlier commit. The overlay was applied at
+about 17:00 and committed with the text of D9; the tag was moved to that commit. No result of the comparison had been read at any
+of these moments (`compare_agents.py summary` and `replay_detectors.py summary` refuse to run without the line `D9-STATUS:
+RECORDED`, which was absent from the folder until then). The D9 rules themselves are unchanged from the text shown to the author
+and approved at 16:31.
