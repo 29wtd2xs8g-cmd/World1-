@@ -75,3 +75,20 @@ above 15% (R2c, R2l, R3c, R3l), R3c among them at +58.1% (95% interval +53.6 to 
 **Confirmed on the 60 validation seeds (2026-11-23, [agents.md](agents.md), section 11.1):** D1 is met, with the same four
 regimes above 15% (R2c +87.3%, R3c +58.8% [57.6, 60.0], R2l +29.5%, R3l +22.9%); R2d +5.1% and R3d +1.6% stay below.
 Failure rate in R3c: 0.14 (frozen) to 0.00 (oracle). No test seed was used.
+
+## Incident log
+
+### INC-1 (2026-11-23): tuning files lost and restored
+
+`protocol/tuning_ledger.jsonl` and `protocol/trigger_thresholds.json`, written by `scripts/tune_triggers.py` at 02:15 (Paris),
+disappeared from the working folder during a folder update at about 12:40, before they had been committed (`results/` was lost
+in the same update, as it had been on 2026-11-23 at 00:27). They were restored the same day, to the byte, from a copy of their
+text read from the folder at 12:30, before the loss: the restored files have the original sizes (922 and 819 bytes) and the
+values printed by the tuning run (Agent 1: 0.1142; Agent 2: 15.4674). Tuning is deterministic, so a rerun would reproduce them;
+the once-per-agent guard blocks a rerun unless the ledger is removed first. No test seed was involved.
+
+The tag `thresholds-fixed` was first created on a commit that did not yet contain these two files; it was deleted and
+recreated on the commit that does.
+
+Rule from now on: update the folder by unzipping over it (`unzip -o`), never by replacing it, and commit files of `protocol/`
+as soon as they are written.

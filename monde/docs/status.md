@@ -57,7 +57,7 @@ Still to define: the identification measure of prediction D, and the time-to-goa
 ## Next
 
 1. Checklist 2.3 done: D1 met on the 60 validation seeds under DEV-1 (R3c +59%, [agents.md](agents.md), section 11.1).
-2. Agents 1 and 2 are built ([agents.md](agents.md), section 12); the nominal reference is computed. Next: tune their thresholds (`scripts/tune_triggers.py`, about 480 runs, to run on the Mac once the 60-seed D1 run is over), then `scripts/compare_agents.py run` on the 50 comparison seeds ([agents.md](agents.md), section 13).
+2. Agents 1 and 2 are built ([agents.md](agents.md), section 12); the nominal reference is computed. Thresholds tuned on 2026-11-23 ([agents.md](agents.md), section 12). Next: rerun D1 to regenerate the raw data lost with `results/` (`scripts/run_d1_60.sh`), then `scripts/compare_agents.py run` on the 50 comparison seeds ([agents.md](agents.md), section 13), after D9 is decided.
 3. Stage 1 of the checklist; then validation beyond the toy world.
 
 Reading list before agents: stress-gated plasticity (arXiv 2602.18581), the viability-variable paper

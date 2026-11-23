@@ -320,6 +320,29 @@ so neither grid is hand-picked and the two are comparable.
 validation seeds 2030-2039, regimes R0, R1, R2c, R3c, 20 episodes, score `metrics.tuning_score`); the chosen thresholds go to
 `protocol/trigger_thresholds.json`. An agent can be tuned once only (the ledger refuses a second tuning).
 
+**Tuning result (2026-11-23, `protocol/trigger_thresholds.json`, `protocol/tuning_ledger.jsonl`).** Score = `metrics.tuning_score`
+(lower is better), validation seeds 2030-2039, regimes R0, R1, R2c, R3c, 20 episodes, 240 runs per agent.
+
+| Nominal false-alarm rate of the candidate | 1% | 2% | 5% | 10% | 20% | 40% |
+|---|---|---|---|---|---|---|
+| Agent 1, threshold | 0.199 | 0.183 | 0.133 | **0.114** | 0.078 | 0.045 |
+| Agent 1, score | 0.028 | 0.020 | 0.024 | **0.012** | 0.024 | 0.033 |
+| Agent 2, threshold | **15.47** | 13.67 | 11.28 | 10.03 | 8.14 | 5.51 |
+| Agent 2, score | **0.011** | 0.027 | 0.053 | 0.098 | 0.188 | 0.500 |
+
+Chosen by the rule fixed in advance (lowest score): Agent 1 at the 10% candidate (0.114), Agent 2 at the 1% candidate (15.47).
+Three things to keep in mind when reading the comparison.
+
+1. Agent 2's score rises steadily as its threshold falls, so its best candidate is the edge of the grid: a threshold above 15.47
+   might do better, and the grid does not show it. The grid was fixed in advance and is not extended after the fact.
+2. Agent 1's scores do not separate its candidates: apart from the 10% one, they lie within 0.012 of each other, a few episodes
+   out of the 240 and 400 that the score averages. The rule still picks the lowest.
+3. The tuning regimes R2c and R3c are cost drifts, which both agents detect with a large margin (a replay of one calibration seed
+   gave statistics far above every threshold of the grid). The score therefore mostly penalises false alarms and favours
+   conservative thresholds. Detection in the dynamics and latency regimes (R2d, R2l, R3l) is not part of the budget. The budget is the same for both
+   agents, so the comparison stays fair; a threshold sweep (the comparison repeated at the six grid thresholds) would
+   show how much the conclusions depend on this choice.
+
 **What this design does not decide.** Variants of Agent 2 (raw threshold on the error, velocity channel only, value-based
 trigger) are ablations to pre-register before they are run. The rates are in-sample on 200 episodes, so the 1% level rests
 on two episodes: it is a coarse candidate, not a calibrated one.
