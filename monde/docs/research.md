@@ -139,5 +139,11 @@ the 5% level, curve at six levels; median delay at least 10 steps shorter (Holm 
 censored) in at least 3 of the 5 lethal regimes, and measured false-alarm rates within 5 points in R0 and R1. (c) The delay is per run, on all
 runs of the regime ("on failure episodes" is not a filter: it would depend on the agent compared), right-censored at the end of the run.
 
+**D10. Confirmatory study on the test seeds, nothing changed (2026-11-23, after reading the validation comparison).** Predictions B and
+C were not supported on the validation seeds ([results_validation.md](results_validation.md)). Decided: the study goes to the test seeds with
+the agents, the tuned thresholds, the revision recipe (D2, D3) and the rules of D9 exactly as they are, opened once through `open_test_seeds`; the
+verdicts are reported whatever they are, next to the validation record. The post hoc checks on retreats and the hypothesis on the shared revision recipe
+stay exploratory and open. A change of agent or recipe would be a new deviation (DEV-2) and a new validation, and is not part of this study.
+
 **Amendment of the baseline (DEV-1, 2026-11-22).** After the first measurement of D1, the route rule received a safety
 buffer (`margin_frac` 0.7, for every agent). See [protocol_deviations.md](protocol_deviations.md).

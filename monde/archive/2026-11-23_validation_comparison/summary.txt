@@ -1,0 +1,122 @@
+# Output of `replay_detectors.py summary` then `compare_agents.py summary`, validation seeds, 2026-11-23 (verbatim)
+
+50 paired comparison seeds; frozen trajectories; bootstrap 5000 replications
+
+Delay of the first alert after the onset (steps from the start of the onset episode, censored at the end of the run)
+and false alarms per episode, at each nominal false-alarm level. Gap = Agent 2 median minus Agent 1 median.
+
+regime level | median A1  cens | median A2  cens |           gap A2 - A1 [95% CI] |  FA A1  FA A2
+R0       1%  |                 |                 |                                |  0.004  0.014
+R0       2%  |                 |                 |                                |  0.007  0.021
+R0       5%* |                 |                 |                                |  0.033  0.053
+R0      10%  |                 |                 |                                |  0.058  0.087
+R0      20%  |                 |                 |                                |  0.154  0.172
+R0      40%  |                 |                 |                                |  0.340  0.395
+
+R1       1%  |                 |                 |                                |  0.001  0.020
+R1       2%  |                 |                 |                                |  0.005  0.038
+R1       5%* |                 |                 |                                |  0.025  0.079
+R1      10%  |                 |                 |                                |  0.044  0.123
+R1      20%  |                 |                 |                                |  0.128  0.240
+R1      40%  |                 |                 |                                |  0.297  0.544
+
+R2d      1%  |       152  0.00 |        75  0.00 |       -77.0 [  -91.5,   +66.5] |  0.000  0.014
+R2d      2%  |       152  0.00 |        68  0.00 |       -84.0 [ -100.5,    -4.5] |  0.003  0.020
+R2d      5%* |       151  0.00 |        64  0.00 |       -87.0 [ -104.5,   -10.0] |  0.042  0.056
+R2d     10%  |       150  0.00 |        62  0.00 |       -88.5 [ -105.5,   -12.5] |  0.076  0.096
+R2d     20%  |        78  0.00 |        59  0.00 |       -18.5 [  -94.5,   -15.0] |  0.184  0.192
+R2d     40%  |        76  0.00 |        54  0.00 |       -22.0 [  -96.0,   -19.0] |  0.370  0.418
+
+R2c      1%  |        47  0.00 |        43  0.00 |        -4.0 [   -5.0,    -4.0] |  0.000  0.014
+R2c      2%  |        47  0.00 |        43  0.00 |        -4.0 [   -4.5,    -4.0] |  0.003  0.020
+R2c      5%* |        46  0.00 |        43  0.00 |        -3.0 [   -4.0,    -3.0] |  0.042  0.056
+R2c     10%  |        46  0.00 |        43  0.00 |        -3.0 [   -4.0,    -2.0] |  0.076  0.096
+R2c     20%  |        45  0.00 |        43  0.00 |        -2.0 [   -3.0,    -2.0] |  0.184  0.192
+R2c     40%  |        44  0.00 |        42  0.00 |        -2.0 [   -2.0,    -1.0] |  0.370  0.418
+
+R2l      1%  |       284  0.00 |         6  0.00 |      -277.5 [ -374.5,  -139.0] |  0.000  0.014
+R2l      2%  |       284  0.00 |         6  0.00 |      -278.0 [ -375.5,  -139.5] |  0.003  0.020
+R2l      5%* |       258  0.00 |         5  0.00 |      -252.5 [ -347.0,  -128.0] |  0.042  0.056
+R2l     10%  |       151  0.00 |         4  0.00 |      -146.5 [ -327.5,  -119.0] |  0.076  0.096
+R2l     20%  |       151  0.00 |         4  0.00 |      -147.0 [ -326.0,  -118.5] |  0.184  0.192
+R2l     40%  |       130  0.00 |         3  0.00 |      -126.5 [ -235.5,  -100.0] |  0.370  0.418
+
+R3d      1%  |      1202  0.76 |      1290  0.90 |       +87.5 [   -5.5,  +188.0] |  0.000  0.014
+R3d      2%  |      1194  0.70 |      1199  0.72 |        +5.5 [  -93.0,  +118.0] |  0.003  0.020
+R3d      5%* |      1036  0.40 |      1146  0.60 |      +109.0 [  -71.0,  +291.0] |  0.042  0.056
+R3d     10%  |       777  0.24 |      1030  0.46 |      +253.5 [ -191.0,  +503.5] |  0.076  0.096
+R3d     20%  |       522  0.06 |       362  0.08 |      -160.5 [ -222.5,    -3.0] |  0.184  0.192
+R3d     40%  |       166  0.00 |       150  0.00 |       -15.5 [ -116.5,   +65.0] |  0.370  0.418
+
+R3c      1%  |       251  0.00 |       248  0.00 |        -3.5 [   -6.0,   +60.5] |  0.000  0.014
+R3c      2%  |       224  0.00 |       246  0.00 |       +22.5 [   -6.0,   +74.5] |  0.003  0.020
+R3c      5%* |       163  0.00 |       244  0.00 |       +80.5 [   -4.5,   +84.5] |  0.042  0.056
+R3c     10%  |       159  0.00 |       238  0.00 |       +79.5 [   -4.0,   +86.0] |  0.076  0.096
+R3c     20%  |       155  0.00 |       153  0.00 |        -2.0 [   -6.5,    +2.5] |  0.184  0.192
+R3c     40%  |       145  0.00 |       144  0.00 |        -0.5 [  -83.0,   +67.0] |  0.370  0.418
+
+R3l      1%  |       542  0.02 |       138  0.00 |      -404.5 [ -550.0,  -381.0] |  0.000  0.014
+R3l      2%  |       535  0.02 |        64  0.00 |      -471.5 [ -583.5,  -439.5] |  0.003  0.020
+R3l      5%* |       404  0.02 |        61  0.00 |      -343.5 [ -443.5,  -322.0] |  0.042  0.056
+R3l     10%  |       388  0.02 |        60  0.00 |      -328.5 [ -426.5,  -310.5] |  0.076  0.096
+R3l     20%  |       272  0.00 |        56  0.00 |      -215.5 [ -314.0,  -147.5] |  0.184  0.192
+R3l     40%  |       161  0.00 |        43  0.00 |      -118.0 [ -130.0,   -47.0] |  0.370  0.418
+
+Prediction C at the 5% level (*), Holm over the five lethal regimes:
+  R2d: not met   (Holm p = 0.000)
+  R2c: not met   (Holm p = 0.000)
+  R2l: not met   (Holm p = 0.000)
+  R3c: not met   (Holm p = 0.138)
+  R3l: not met   (Holm p = 0.000)
+  regimes met: 0 of 5; measured false-alarm rates matched in R0 and R1: NO
+  PREDICTION C: NOT SUPPORTED on the validation seeds
+
+R3d is reported, not judged. The closed-loop delays of `compare_agents.py summary` (tuned thresholds, unequal false-alarm rates) are descriptive only.
+
+50 paired comparison seeds; bootstrap 5000 replications; post-onset episodes
+
+regime family      kind          | failure success timeout retreat | Ccum|succ Ccum all | revis/run false al/ep
+R0     damage_only frozen        |    0.00    1.00    0.00    0.00 |      1.50     1.50 |       0.0       0.000
+R0     damage_only agent1_alert  |    0.00    1.00    0.00    0.00 |      1.50     1.50 |       0.8       0.039
+R0     damage_only agent2_cusum  |    0.00    0.99    0.00    0.01 |      1.48     1.48 |       0.5       0.027
+R0     damage_only always        |    0.00    1.00    0.00    0.00 |      1.49     1.49 |      20.0       0.000
+R1     damage_only frozen        |    0.00    1.00    0.00    0.00 |      1.41     1.41 |       0.0       0.000
+R1     damage_only agent1_alert  |    0.00    1.00    0.00    0.00 |      1.42     1.42 |       0.6       0.031
+R1     damage_only agent2_cusum  |    0.00    0.99    0.00    0.01 |      1.41     1.41 |       0.6       0.032
+R1     damage_only always        |    0.00    1.00    0.00    0.00 |      1.43     1.43 |      20.0       0.000
+R2d    lethal      agent1_alert  |    0.50    0.49    0.00    0.01 |      2.27     2.55 |       2.5       0.059
+R2d    lethal      agent2_cusum  |    0.42    0.44    0.00    0.14 |      2.31     2.53 |       5.1       0.017
+R2c    lethal      agent1_alert  |    0.03    0.90    0.00    0.08 |      0.38     0.58 |       1.7       0.059
+R2c    lethal      agent2_cusum  |    0.00    0.83    0.00    0.17 |      0.39     0.47 |       4.4       0.017
+R2l    lethal      agent1_alert  |    0.50    0.32    0.12    0.07 |      2.06     2.34 |       3.0       0.059
+R2l    lethal      agent2_cusum  |    0.03    0.02    0.01    0.94 |      1.79     0.50 |      12.9       0.017
+R3d    damage_only agent1_alert  |    0.00    1.00    0.00    0.00 |      1.65     1.65 |       1.0       0.059
+R3d    damage_only agent2_cusum  |    0.00    1.00    0.00    0.00 |      1.66     1.66 |       0.3       0.017
+R3c    lethal      agent1_alert  |    0.01    0.97    0.00    0.02 |      0.93     0.98 |       3.9       0.059
+R3c    lethal      agent2_cusum  |    0.01    0.84    0.00    0.15 |      0.74     0.91 |       5.0       0.017
+R3l    lethal      agent1_alert  |    0.27    0.68    0.03    0.02 |      1.77     2.07 |       2.2       0.059
+R3l    lethal      agent2_cusum  |    0.00    0.20    0.00    0.80 |      1.53     0.76 |      12.3       0.017
+
+Agent 1 against Agent 2 (positive = Agent 1 better); Holm over the lethal regimes (failure) and the harmful ones (Ccum)
+regime |          failure gap (points)  Holm p |           Ccum gap (relative)  Holm p | success A1 - A2 | B
+R2d    |     -0.075 [ -0.139,  -0.011]   0.040 |     -0.006 [ -0.082,  +0.071]   1.000 |          +0.051 | no verdict
+R2c    |     -0.027 [ -0.070,  -0.003]   0.012 |     -0.230 [ -0.469,  -0.089]   0.000 |          +0.068 | not met
+R2l    |     -0.465 [ -0.538,  -0.393]   0.000 |     -3.726 [ -4.782,  -2.931]   0.000 |          +0.298 | no verdict
+R3d    |     +0.000 [ +0.000,  +0.000]     nan |     +0.001 [ -0.008,  +0.009]   1.000 |          +0.003 | no verdict
+R3c    |     -0.000 [ -0.014,  +0.012]   0.962 |     -0.086 [ -0.135,  -0.041]   0.000 |          +0.134 | not met
+R3l    |     -0.268 [ -0.315,  -0.224]   0.000 |     -1.732 [ -2.013,  -1.495]   0.000 |          +0.487 | no verdict
+
+PREDICTION B (R2c and R3c, Holm over the two; Ccum on all post-onset episodes): NOT SUPPORTED on the validation seeds
+  Holm p, failure gap: R2c 0.008  R3c 0.962   Ccum gap: R2c 0.000  R3c 0.000
+
+Closed-loop detection, DESCRIPTIVE ONLY (tuned thresholds, unequal false-alarm rates; the verdict of C is in replay_detectors.py): delay in steps from the onset episode, censored at the end of the run
+regime | median A1  cens | median A2  cens |           gap A2 - A1 [95% CI]
+R2d    |       244  0.18 |        72  0.00 |   -171.500 [-373.500, -79.000]
+R2c    |        46  0.00 |        43  0.00 |      -3.000 [ -3.000,  -2.000]
+R2l    |       423  0.18 |         6  0.00 |  -416.500 [-511.000, -268.000]
+R3d    |      1094  0.48 |      1254  0.84 |   +160.000 [+59.500, +404.000]
+R3c    |       162  0.00 |       248  0.00 |     +85.500 [ +0.000, +89.000]
+R3l    |       529  0.24 |       114  0.00 |  -415.500 [-571.000, -345.000]
+
+False alarms per episode (Agent 1 / Agent 2): R0 0.039/0.027  R1 0.031/0.032  R2d 0.059/0.017  R2c 0.059/0.017  R2l 0.059/0.017  R3d 0.059/0.017  R3c 0.059/0.017  R3l 0.059/0.017
+Calm-regime gap (R0 and R1, Agent 2 minus Agent 1): -0.005

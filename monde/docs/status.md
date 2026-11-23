@@ -41,7 +41,8 @@ the headroom per regime (2.3), measured by `scripts/headroom.py` (see the result
 ## Open decisions
 
 None blocking. D9 (readings of "X% lower" in predictions B and C) was recorded on 2026-11-23 before any comparison result was read
-([protocol.md](protocol.md), section 3.6). Confirmed on 2026-11-22: the tuning budget ([protocol.md](protocol.md), section 3.3) and the reading of
+([protocol.md](protocol.md), section 3.6). D10 (2026-11-23): the confirmatory study goes to the test seeds with nothing changed, after predictions B and C
+were not supported on the validation seeds ([results_validation.md](results_validation.md)). Confirmed on 2026-11-22: the tuning budget ([protocol.md](protocol.md), section 3.3) and the reading of
 checklist 3.1 (`Ccum` over the complete episode, plus run-level totals). D1 is met on the 60 validation seeds
 ([agents.md](agents.md), section 11.1).
 
@@ -56,8 +57,12 @@ Still to define: the identification measure of prediction D, and the time-to-goa
 ## Next
 
 1. Checklist 2.3 done: D1 met on the 60 validation seeds under DEV-1 (R3c +59%, [agents.md](agents.md), section 11.1).
-2. Agents 1 and 2 are built ([agents.md](agents.md), section 12); the nominal reference is computed. Thresholds tuned on 2026-11-23 ([agents.md](agents.md), section 12). Next: rerun D1 to regenerate the raw data lost with `results/` (`scripts/run_d1_60.sh`), then `scripts/compare_agents.py run` on the 50 comparison seeds ([agents.md](agents.md), section 13; run finished or nearly), then `scripts/replay_detectors.py run` (matched false-alarm replay for prediction C), `check`, then the two `summary` commands.
-3. Stage 1 of the checklist; then validation beyond the toy world.
+2. Agents 1 and 2 are built, tuned and compared on the 50 validation seeds: B and C not supported ([results_validation.md](results_validation.md)). Raw data to archive in
+   `archive/2026-11-23_validation_comparison/`.
+3. Next, in order: (a) test-seed mode of `scripts/compare_agents.py` and `scripts/replay_detectors.py`, through `seeds.open_test_seeds` (opens once, 60 seeds); (b) the final run
+   (about 1,200 closed-loop jobs and 480 replay jobs, several hours on 8 cores); (c) the verdicts of B and C on the test seeds, with the same code and rules; (d) the D1 rerun
+   (`scripts/run_d1_60.sh`) only to fill the reference rows of the harmful regimes in the tables.
+4. Stage 1 of the checklist; then validation beyond the toy world.
 
 Reading list before agents: stress-gated plasticity (arXiv 2602.18581), the viability-variable paper
 (bioRxiv), arXiv 2505.14903.

@@ -378,5 +378,7 @@ alert step identical at the tuned thresholds). `summary` prints the delays and f
 (at least 3 of the 5 lethal regimes; censoring rule; measured false alarms matched in R0 and R1). The replay isolates the detector: a false alarm
 never triggers a retreat or a revision in it, which the closed-loop runs do.
 
+**Results on the validation seeds:** [results_validation.md](results_validation.md).
+
 Predictions A (resources), D (identification) and E (recovering the goal) are not computed by this script.
 

@@ -101,4 +101,5 @@ Use a dedicated virtual environment: the scripts need PyTorch, gymnasium and num
 4. [docs/agents.md](docs/agents.md): the baseline agent, the references (frozen, oracle, always-adapting), the trigger interface and the revision protocol.
 5. [docs/protocol.md](docs/protocol.md): evaluation rules (checklist section 3): metrics, seeds, tuning budget, statistics.
 6. [docs/protocol_deviations.md](docs/protocol_deviations.md): dated log of changes made to the protocol after a result was seen.
-7. [docs/status.md](docs/status.md): what is done, open decisions, next steps, checklist mapping.
+7. [docs/results_validation.md](docs/results_validation.md): Agent 1 against Agent 2 on the validation seeds (predictions B and C).
+8. [docs/status.md](docs/status.md): what is done, open decisions, next steps, checklist mapping.
