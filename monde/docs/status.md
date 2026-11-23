@@ -40,7 +40,9 @@ the headroom per regime (2.3), measured by `scripts/headroom.py` (see the result
 
 ## Open decisions
 
-None blocking. Confirmed on 2026-11-22: the tuning budget ([protocol.md](protocol.md), section 3.3) and the reading of
+1. **D9** ([research.md](research.md), section 6): readings of "X% lower" in predictions B and C, and the population of the delay. Proposed, to confirm before the comparison runs.
+
+Otherwise none blocking. Confirmed on 2026-11-22: the tuning budget ([protocol.md](protocol.md), section 3.3) and the reading of
 checklist 3.1 (`Ccum` over the complete episode, plus run-level totals). D1 is met on the 60 validation seeds
 ([agents.md](agents.md), section 11.1).
 
@@ -55,7 +57,7 @@ Still to define: the identification measure of prediction D, and the time-to-goa
 ## Next
 
 1. Checklist 2.3 done: D1 met on the 60 validation seeds under DEV-1 (R3c +59%, [agents.md](agents.md), section 11.1).
-2. Agents 1 and 2 are built ([agents.md](agents.md), section 12); the nominal reference is computed. Next: tune their thresholds (`scripts/tune_triggers.py`, about 480 runs, to run on the Mac once the 60-seed D1 run is over), then the comparison on validation seeds without the tuning seeds.
+2. Agents 1 and 2 are built ([agents.md](agents.md), section 12); the nominal reference is computed. Next: tune their thresholds (`scripts/tune_triggers.py`, about 480 runs, to run on the Mac once the 60-seed D1 run is over), then `scripts/compare_agents.py run` on the 50 comparison seeds ([agents.md](agents.md), section 13).
 3. Stage 1 of the checklist; then validation beyond the toy world.
 
 Reading list before agents: stress-gated plasticity (arXiv 2602.18581), the viability-variable paper

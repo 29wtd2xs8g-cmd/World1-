@@ -323,3 +323,30 @@ validation seeds 2030-2039, regimes R0, R1, R2c, R3c, 20 episodes, score `metric
 **What this design does not decide.** Variants of Agent 2 (raw threshold on the error, velocity channel only, value-based
 trigger) are ablations to pre-register before they are run. The rates are in-sample on 200 episodes, so the 1% level rests
 on two episodes: it is a coarse candidate, not a calibrated one.
+
+## 13. Comparison of Agent 1 and Agent 2 (validation seeds)
+
+Code: `toyworld/compare.py` (functions), `scripts/compare_agents.py` (run and summary), `tests/test_compare.py`.
+
+**Seeds.** The 50 validation seeds that did not tune anything: `VALIDATION_SEEDS` minus the ten tuning seeds 2030-2039. The test
+seeds are not touched. `run` refuses to start unless `protocol/trigger_thresholds.json` exists, both agents are in the tuning
+ledger, the ledger shows one common budget, and the nominal reference was computed on the model being run.
+
+**What is played.** Agent 1 and Agent 2 in the eight regimes. The frozen and always-adapting agents are played in R0 and R1 (calm
+regimes, for false alarms); in the six harmful regimes the frozen, oracle and always-adapting references come from the D1 file
+(`results/headroom_rho0.7.jsonl`), same seeds, same code.
+
+**What is reported** (`python scripts/compare_agents.py summary`).
+1. Outcomes first (failure, success, timeout, retreat), then `Ccum` over the successes and over all episodes, revisions per run and
+   false alarms per episode, for every agent and regime (rule of [protocol.md](protocol.md), section 3.1).
+2. Paired contrasts Agent 1 against Agent 2, positive meaning Agent 1 better: failure gap in points, relative `Ccum` gap, each with a
+   95% paired bootstrap interval (5,000 replications over seeds). Holm correction over the five lethal regimes for the failure gap,
+   and over the six harmful regimes for the `Ccum` gap.
+3. Detection (prediction C): delay of the first alert after the onset, in steps counted from the start of the onset episode, one value
+   per run, right-censored at the end of the run (decision D4); median per agent, censored fraction, and the paired median gap
+   (Agent 2 minus Agent 1).
+4. False alarms per episode: every alert in R0 and R1, and the alerts before the onset in the other regimes.
+5. The literal verdicts of predictions B and C, under the provisional readings of decision D9 (research.md, section 6).
+
+Predictions A (resources), D (identification) and E (recovering the goal) are not computed by this script.
+

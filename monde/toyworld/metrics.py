@@ -82,6 +82,42 @@ def paired_bootstrap(a, b=None, reps=BOOTSTRAP_REPS, seed=0):
     return {"mean": float(d.mean()), "lo": float(lo), "hi": float(hi), "p": float(p), "n": len(d), "reps": reps}
 
 
+def paired_bootstrap_stat(a, b, stat, reps=BOOTSTRAP_REPS, seed=0):
+    """Paired bootstrap over seeds of any statistic `stat(a_sample, b_sample)` (a median difference, a relative gap).
+    The null value is 0. Returns the statistic, its 95% percentile interval and a two-sided p-value."""
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    idx = np.random.default_rng(seed).integers(0, len(a), (reps, len(a)))
+    vals = np.array([stat(a[i], b[i]) for i in idx])
+    lo, hi = np.percentile(vals, [2.5, 97.5])
+    p = min(1.0, 2.0 * min((vals <= 0).mean(), (vals >= 0).mean()))
+    return {"value": float(stat(a, b)), "lo": float(lo), "hi": float(hi), "p": float(p), "n": len(a), "reps": reps}
+
+
+def detection(rows):
+    """Decision D4 (prediction C): delay of the first alert after the drift onset, in environment steps counted from
+    the start of the onset episode (the drift acts from step 0 of that episode). A run with no alert after the onset
+    gets a delay censored on the right at the end of the run (`censored` True). None when the run has no onset."""
+    elapsed = 0
+    post = post_tau(rows)
+    if not post:
+        return None
+    for r in post:
+        if r["alert_step"] is not None:
+            return {"delay": elapsed + int(r["alert_step"]), "censored": False}
+        elapsed += int(r["steps"])
+    return {"delay": elapsed, "censored": True}
+
+
+def false_alarms(rows):
+    """(alerts, episodes) over the episodes where an alert is a false alarm: every episode of R0 and R1 (nothing
+    harmful to detect) and the episodes before the onset in the other regimes."""
+    if rows and rows[0]["regime"] in ("R0", "R1"):
+        sel = rows
+    else:
+        sel = [r for r in rows if r["tau_ep"] is not None and r["episode"] < r["tau_ep"]]
+    return int(sum(r["alert_step"] is not None for r in sel)), len(sel)
+
+
 def holm(pvalues):
     """Holm-Bonferroni adjusted p-values, in the input order (family of the comparisons announced in 0.2)."""
     p = np.asarray(pvalues, float)
