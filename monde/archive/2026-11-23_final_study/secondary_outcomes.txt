@@ -1,0 +1,12 @@
+Non-completion of the task = 1 - success = failure + retreat + timeout. SECONDARY ANALYSIS registered as D11 before the test summary was read.
+Not part of the verdicts of B and C; `failure` keeps its registered definition (irreversible failure).
+60 paired seeds, post-onset episodes; gap = Agent 2 minus Agent 1 (positive = Agent 1 completes more often);
+95% paired bootstrap interval, Holm over the five lethal regimes (R3d reported, not judged).
+
+regime | Agent 1: fail retreat timeout | non-compl | Agent 2: fail retreat timeout | non-compl |     gap (points) [95% CI]  Holm p | reading
+R2d    |          0.45   0.00    0.00 |      0.45 |          0.42   0.14    0.00 |      0.56 |   +10.9 [  +5.2,  +16.8]  0.000 | Agent 1 completes more
+R2c    |          0.03   0.07    0.00 |      0.10 |          0.00   0.20    0.00 |      0.20 |   +10.0 [  +5.3,  +13.7]  0.000 | Agent 1 completes more
+R2l    |          0.52   0.06    0.03 |      0.61 |          0.02   0.94    0.00 |      0.97 |   +35.9 [ +29.6,  +42.3]  0.000 | Agent 1 completes more
+R3d    |          0.00   0.00    0.00 |      0.00 |          0.00   0.00    0.00 |      0.00 |    +0.2 [  +0.0,   +0.5]      - | not judged
+R3c    |          0.00   0.02    0.00 |      0.03 |          0.01   0.17    0.00 |      0.18 |   +15.5 [ +12.6,  +18.3]  0.000 | Agent 1 completes more
+R3l    |          0.28   0.02    0.00 |      0.30 |          0.00   0.77    0.00 |      0.78 |   +47.4 [ +41.8,  +53.1]  0.000 | Agent 1 completes more

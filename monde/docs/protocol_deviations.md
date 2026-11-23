@@ -102,3 +102,11 @@ about 17:00 and committed with the text of D9; the tag was moved to that commit.
 of these moments (`compare_agents.py summary` and `replay_detectors.py summary` refuse to run without the line `D9-STATUS:
 RECORDED`, which was absent from the folder until then). The D9 rules themselves are unchanged from the text shown to the author
 and approved at 16:31.
+
+### INC-3 (2026-11-23): the verdict lines of the final summary say "validation seeds"
+
+`final_study.py summary` reuses the summaries of `compare_agents.py` and `replay_detectors.py`, whose verdict lines end with "on the
+validation seeds" (`PREDICTION B: ... NOT SUPPORTED on the validation seeds`, same for C). On the final study the label is wrong and
+nothing else is: the header line prints "60 paired comparison seeds", the data are `results/test_compare.jsonl` and
+`results/test_replay.jsonl`, and no number depends on that string. The scripts were not changed after the study, so that the code that
+produced the results stays the code that was run; a later commit will make the label follow the seeds. See [results_final.md](results_final.md).

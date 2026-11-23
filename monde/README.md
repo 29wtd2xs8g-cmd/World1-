@@ -95,8 +95,8 @@ Use a dedicated virtual environment: the scripts need PyTorch, gymnasium and num
 | `toyworld/adaptive.py` | `run_agent`: one agent, one trigger (or the oracle), one full run; retreat on alert |
 | `toyworld/metrics.py` | evaluation rules: outcome table (failure first), `Ccum` over successes, run totals, paired bootstrap, Holm |
 | `toyworld/tuning.py` | `tune`: the same tuning budget for every tunable agent, ledger and equality check |
-| `protocol/` | test-seed ledger (empty until the final study) and tuning ledger, tracked by git |
-| `archive/` | exact data of runs that motivated a protocol deviation |
+| `protocol/` | test-seed ledger (one line: the opening of the final study) and tuning ledger, tracked by git |
+| `archive/` | exact data of archived runs: the run that motivated a protocol deviation, the validation comparison, the final study |
 | `tests/` | 131 tests: dynamics, geometry, damage, retreat, leaks, every regime, world model, agent, triggers, revision, oracle, seeds, metrics, protocol, Agents 1 and 2, comparison, replay, secondary analysis |
 | `scripts/` | calibration of `D`, exploration of the regimes, baseline training and evaluation, revision budget, headroom |
 | `docs/` | research design, world specification, regimes and results, status |
@@ -110,4 +110,5 @@ Use a dedicated virtual environment: the scripts need PyTorch, gymnasium and num
 5. [docs/protocol.md](docs/protocol.md): evaluation rules (checklist section 3): metrics, seeds, tuning budget, statistics.
 6. [docs/protocol_deviations.md](docs/protocol_deviations.md): dated log of changes made to the protocol after a result was seen.
 7. [docs/results_validation.md](docs/results_validation.md): Agent 1 against Agent 2 on the validation seeds (predictions B and C).
-8. [docs/status.md](docs/status.md): what is done, open decisions, next steps, checklist mapping.
+8. [docs/results_final.md](docs/results_final.md): the final study on the test seeds (predictions B and C), with the secondary analysis D11.
+9. [docs/status.md](docs/status.md): what is done, open decisions, next steps, checklist mapping.

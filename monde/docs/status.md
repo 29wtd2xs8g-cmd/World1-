@@ -59,9 +59,9 @@ Still to define: the identification measure of prediction D, and the time-to-goa
 1. Checklist 2.3 done: D1 met on the 60 validation seeds under DEV-1 (R3c +59%, [agents.md](agents.md), section 11.1).
 2. Agents 1 and 2 are built, tuned and compared on the 50 validation seeds: B and C not supported ([results_validation.md](results_validation.md)). Raw data to archive in
    `archive/2026-11-23_validation_comparison/`.
-3. Next, in order: (a) `scripts/final_study.py` is written and tested (guards, one recorded opening, resume, no interim look; [protocol.md](protocol.md) section 3.7): `plan`, then `run --open`; (b) the final run
-   (about 1,200 closed-loop jobs and 480 replay jobs, several hours on 8 cores); (c) the verdicts of B and C on the test seeds, with the same code and rules; (d) the D1 rerun
-   (`scripts/run_d1_60.sh`) only to fill the reference rows of the harmful regimes in the tables.
+3. Final study done on 2026-11-23 (`scripts/final_study.py`, one recorded opening of the 60 test seeds): B and C **not supported** on the test seeds, as on the
+   validation seeds; secondary analysis D11: Agent 1 completes the task more often in all five lethal regimes ([results_final.md](results_final.md); raw data in
+   `archive/2026-11-23_final_study/`). The D1 rerun (`scripts/run_d1_60.sh`) would only fill the reference rows (oracle, always) of the harmful regimes in the tables; optional.
 4. Stage 1 of the checklist; then validation beyond the toy world.
 
 Reading list before agents: stress-gated plasticity (arXiv 2602.18581), the viability-variable paper
