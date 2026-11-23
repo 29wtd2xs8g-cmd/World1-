@@ -19,7 +19,11 @@ prediction-error trigger. Details: [docs/research.md](docs/research.md).
 
 ## Install and test
 
+Use a dedicated virtual environment: the scripts need PyTorch, gymnasium and numpy in the interpreter that runs them.
+
+    python3 -m venv .venv && source .venv/bin/activate
     pip install -r requirements.txt
+    # a launcher can use another interpreter: PYTHON=/path/to/python bash scripts/run_d1_60.sh 8
     python -m pytest -q                        # 76 tests, about 2 min
     PYTHONPATH=. python scripts/calibrate.py   # measures C1 and D = 2*C1
     PYTHONPATH=. python scripts/explore_regimes.py 12   # scripted agent, 8 regimes, before/after drift
