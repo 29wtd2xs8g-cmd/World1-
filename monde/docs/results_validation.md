@@ -174,7 +174,7 @@ Calm-regime gap (R0 and R1, Agent 2 minus Agent 1): -0.005
 Agent 2 alerts within a few steps of the onset (median first alert at step 5 in R2l) and then alerts again in almost every
 episode: 607 of 646 post-onset episodes end in a retreat in R2l (522 in R3l), and it revises in 641 of 646 (608 in R3l), with
 12 to 13 revisions per run. Its failure rate is the lowest (0.03 in R2l, 0.00 in R3l), but it completes the task in 2% and 20%
-of the episodes, and 80% of its runs have no success at all after the onset in R2l (10% for Agent 1). Agent 1 fails in 50% (R2l)
+of the episodes, and 76% of its runs have no success at all after the onset in R2l (10% for Agent 1). Agent 1 fails in 50% (R2l)
 and 27% (R3l) of the episodes and succeeds in 32% and 68%. The failure rate alone favours Agent 2 and the success rate favours
 Agent 1; neither agent solves these regimes.
 
@@ -200,19 +200,54 @@ Cost of a whole run from the onset (`metrics.run_totals`) and cost up to the fir
 
 | Regime | Agent | `Ccum` of the run | failures | retreats | revisions | `Ccum` to first success | runs with no success |
 |---|---|---|---|---|---|---|---|
-| R2c | Agent 1 | 7.5 | 0.4 | 0.9 | 1.3 | 3.5 | 0.00 |
+| R2c | Agent 1 | 7.5 | 0.4 | 0.9 | 1.3 | 3.5 | 0.02 |
 | R2c | Agent 2 | 6.1 | 0.0 | 2.2 | 4.3 | 1.3 | 0.00 |
 | R3c | Agent 1 | 12.6 | 0.1 | 0.2 | 3.5 | 1.5 | 0.00 |
 | R3c | Agent 2 | 11.6 | 0.1 | 1.9 | 4.9 | 1.5 | 0.00 |
 | R2l | Agent 1 | 30.0 | 6.3 | 0.8 | 2.6 | 10.1 | 0.10 |
-| R2l | Agent 2 | 6.4 | 0.4 | 12.1 | 12.8 | 5.4 | 0.80 |
+| R2l | Agent 2 | 6.4 | 0.4 | 12.1 | 12.8 | 5.4 | 0.76 |
 | R3l | Agent 1 | 26.8 | 3.5 | 0.2 | 1.8 | 1.5 | 0.00 |
-| R3l | Agent 2 | 9.6 | 0.0 | 10.4 | 12.2 | 2.2 | 0.10 |
+| R3l | Agent 2 | 9.6 | 0.0 | 10.4 | 12.2 | 2.2 | 0.06 |
 | R2d | Agent 1 | 32.8 | 6.3 | 0.2 | 2.1 | 7.1 | 0.00 |
 | R2d | Agent 2 | 32.7 | 5.4 | 1.8 | 5.0 | 6.1 | 0.00 |
 
 The non-support of B is therefore not an artefact of how retreats are counted: on the run-level cost, Agent 2 is lower in R2c and
 nearly equal in R3c, and the cost to the first success is equal in R3c.
+
+(The last column of this table was corrected on 2026-11-23: an earlier version showed 0.00, 0.80 and 0.10 for R2c Agent 1, R2l Agent 2 and R3l Agent 2, which were the exact values 0.02, 0.76 and 0.06 rounded to one decimal.)
+
+## 5.1 Secondary analysis (decision D11): non-completion of the task
+
+Post hoc on the validation seeds (computed after the verdicts were read, motivated by the retreats of section 4); registered in
+[research.md](research.md) (D11) for the test seeds before their summary is read. It changes no verdict and no definition:
+`failure` keeps its registered meaning (irreversible failure), and a retreat is not called a failure (it is reversible and costs
+damage; a failure ends the episode). Non-completion is `1 - success = failure + retreat + timeout`.
+
+```
+Non-completion of the task = 1 - success = failure + retreat + timeout. POST HOC (computed after the verdicts were read), on the validation seeds.
+Not part of the verdicts of B and C; `failure` keeps its registered definition (irreversible failure).
+50 paired seeds, post-onset episodes; gap = Agent 2 minus Agent 1 (positive = Agent 1 completes more often);
+95% paired bootstrap interval, Holm over the five lethal regimes (R3d reported, not judged).
+
+regime | Agent 1: fail retreat timeout | non-compl | Agent 2: fail retreat timeout | non-compl |     gap (points) [95% CI]  Holm p | reading
+R2d    |          0.50   0.01    0.00 |      0.51 |          0.42   0.14    0.00 |      0.56 |    +5.1 [  -1.3,  +11.6]  0.119 | no difference
+R2c    |          0.03   0.08    0.00 |      0.10 |          0.00   0.17    0.00 |      0.17 |    +6.8 [  +1.6,  +10.9]  0.023 | Agent 1 completes more
+R2l    |          0.50   0.07    0.12 |      0.68 |          0.03   0.94    0.01 |      0.98 |   +29.8 [ +23.3,  +36.5]  0.000 | Agent 1 completes more
+R3d    |          0.00   0.00    0.00 |      0.00 |          0.00   0.00    0.00 |      0.00 |    +0.3 [  +0.0,   +0.7]      - | not judged
+R3c    |          0.01   0.02    0.00 |      0.03 |          0.01   0.15    0.00 |      0.16 |   +13.4 [ +10.3,  +16.5]  0.000 | Agent 1 completes more
+R3l    |          0.27   0.02    0.03 |      0.32 |          0.00   0.80    0.00 |      0.80 |   +48.7 [ +43.8,  +53.8]  0.000 | Agent 1 completes more
+```
+
+- Under the registered definition (irreversible failure only), Agent 2 has fewer failures in R2l (0.03 against 0.50) and R3l (0.00
+  against 0.27). The breakdown of outcomes shows that this comes from a systematic retreat (94% and 80% of the episodes), which brings its
+  success rate down to 2% and 20%.
+- On non-completion Agent 1 is lower in R2c (0.10 against 0.17), R2l (0.68 against 0.98), R3c (0.03 against 0.16) and R3l (0.32 against
+  0.80), with Holm p below 0.05; in R2d the gap (0.51 against 0.56) is not significant (Holm p = 0.119).
+- The two readings disagree, and neither agent is better on both. The failure rate rewards a retreat; the non-completion rate penalises
+  it, although a retreat is a safe abort and a failure is not. Which one matters depends on the cost of not delivering, which this study
+  does not define. Both are reported, with the registered one as the verdict.
+- The retreats come from the alert-retreat-revise recipe shared by both agents (decisions D2 and D3), so this analysis cannot separate
+  the effect of the trigger from the effect of the recipe (section 6).
 
 ## 6. Where it does not work (protocol 3.5)
 
@@ -231,3 +266,5 @@ nearly equal in R3c, and the cost to the first success is equal in R3c.
 The confirmatory study goes to the test seeds with the agents, the thresholds, the revision recipe and the rules of D9 unchanged
 (option A). The analyses of section 5 stay exploratory, and the hypothesis of section 6 stays open. The verdicts of B and C on
 the test seeds will be reported whatever they are, next to this validation record.
+
+Decision D11 (2026-11-23): the analysis of section 5.1 is registered as a secondary analysis for the test seeds, next to the verdicts.

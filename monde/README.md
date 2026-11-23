@@ -24,7 +24,7 @@ Use a dedicated virtual environment: the scripts need PyTorch, gymnasium and num
     python3 -m venv .venv && source .venv/bin/activate
     pip install -r requirements.txt
     # a launcher can use another interpreter: PYTHON=/path/to/python bash scripts/run_d1_60.sh 8
-    python -m pytest -q                        # 125 tests, about 2 min
+    python -m pytest -q                        # 131 tests, about 2 min
     PYTHONPATH=. python scripts/calibrate.py   # measures C1 and D = 2*C1
     PYTHONPATH=. python scripts/explore_regimes.py 12   # scripted agent, 8 regimes, before/after drift
     PYTHONPATH=. python scripts/train_baseline.py       # pretrains the world model (about 1 min)
@@ -45,6 +45,8 @@ Use a dedicated virtual environment: the scripts need PyTorch, gymnasium and num
     PYTHONPATH=. python scripts/final_study.py plan results/baseline.pt      # final study on the test seeds: guards, nothing opened
     PYTHONPATH=. OMP_NUM_THREADS=1 python scripts/final_study.py run results/baseline.pt 8 --open   # opens the test seeds ONCE (ledger), then runs
     PYTHONPATH=. python scripts/final_study.py summary                       # verdicts of B and C, only when all 60 seeds are complete
+    PYTHONPATH=. python scripts/secondary_outcomes.py results/test_compare.jsonl --label test --required 60   # secondary analysis D11: non-completion, after the summaries
+    PYTHONPATH=. python scripts/make_figures.py --compare results/test_compare.jsonl --replay results/test_replay.jsonl --out figures/test --label test --required 60   # figures, same guard
 
 ## Use
 
@@ -85,6 +87,8 @@ Use a dedicated virtual environment: the scripts need PyTorch, gymnasium and num
 | `toyworld/detectors.py` | Agent 1 (`HarmExcessTrigger`, harm excess over remaining margin) and Agent 2 (`CusumTrigger`, prediction error), `Recorder` |
 | `toyworld/compare.py` | comparison of Agents 1 and 2: seeds, guarded thresholds, per-seed vectors, contrasts, verdict of B, D9 guard |
 | `scripts/final_study.py` | the final study on the test seeds: guards, one recorded opening, resumable run, verdicts without interim look |
+| `scripts/secondary_outcomes.py`, `toyworld/secondary.py` | secondary analysis (decision D11): non-completion `1 - success` per regime, same bootstrap, no verdict |
+| `scripts/make_figures.py` | six figures (PNG and PDF) from the comparison and replay files; refuses to draw before the required seeds are complete |
 | `toyworld/replay.py` | matched false-alarm replay of the two detectors on frozen trajectories, verdict of C |
 | `toyworld/nominal.py` | nominal reference: residual scales and threshold grids by false-alarm rate |
 | `toyworld/revision.py` | revision by fine-tuning on the window of the last episode (`RevisionParams`) |
@@ -93,7 +97,7 @@ Use a dedicated virtual environment: the scripts need PyTorch, gymnasium and num
 | `toyworld/tuning.py` | `tune`: the same tuning budget for every tunable agent, ledger and equality check |
 | `protocol/` | test-seed ledger (empty until the final study) and tuning ledger, tracked by git |
 | `archive/` | exact data of runs that motivated a protocol deviation |
-| `tests/` | 125 tests: dynamics, geometry, damage, retreat, leaks, every regime, world model, agent, triggers, revision, oracle, seeds, metrics, protocol, Agents 1 and 2, comparison, replay |
+| `tests/` | 131 tests: dynamics, geometry, damage, retreat, leaks, every regime, world model, agent, triggers, revision, oracle, seeds, metrics, protocol, Agents 1 and 2, comparison, replay, secondary analysis |
 | `scripts/` | calibration of `D`, exploration of the regimes, baseline training and evaluation, revision budget, headroom |
 | `docs/` | research design, world specification, regimes and results, status |
 

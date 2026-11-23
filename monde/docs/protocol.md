@@ -137,5 +137,8 @@ script that reaches the test seeds, through `seeds.test_seeds_for_study`.
   are read once, on the complete data.
 - **What is run.** The closed-loop comparison (1,200 jobs, `results/test_compare.jsonl`) and the frozen-trajectory replay (480 jobs,
   `results/test_replay.jsonl`). The frozen reference of the harmful regimes is the frozen agent of the replay.
+- **Secondary analysis (D11).** After the summaries, `scripts/secondary_outcomes.py results/test_compare.jsonl --label test --required 60`
+  prints the non-completion rate (`1 - success`) per regime. It is secondary: it changes no verdict and no definition, and it refuses to
+  run before all 60 seeds are complete.
 - **Reported whatever the result.** The verdicts of B and C, the tables of outcomes and the replay curves are published next to the
   validation record ([results_validation.md](results_validation.md)); the post hoc analyses of that record stay labelled exploratory.

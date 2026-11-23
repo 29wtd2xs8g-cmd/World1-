@@ -42,7 +42,7 @@ the headroom per regime (2.3), measured by `scripts/headroom.py` (see the result
 
 None blocking. D9 (readings of "X% lower" in predictions B and C) was recorded on 2026-11-23 before any comparison result was read
 ([protocol.md](protocol.md), section 3.6). D10 (2026-11-23): the confirmatory study goes to the test seeds with nothing changed, after predictions B and C
-were not supported on the validation seeds ([results_validation.md](results_validation.md)). Confirmed on 2026-11-22: the tuning budget ([protocol.md](protocol.md), section 3.3) and the reading of
+were not supported on the validation seeds ([results_validation.md](results_validation.md)). D11 (2026-11-23): a secondary analysis of non-completion (`1 - success`) is registered for the test seeds, next to the verdicts ([research.md](research.md)). Confirmed on 2026-11-22: the tuning budget ([protocol.md](protocol.md), section 3.3) and the reading of
 checklist 3.1 (`Ccum` over the complete episode, plus run-level totals). D1 is met on the 60 validation seeds
 ([agents.md](agents.md), section 11.1).
 

@@ -145,5 +145,17 @@ the agents, the tuned thresholds, the revision recipe (D2, D3) and the rules of 
 verdicts are reported whatever they are, next to the validation record. The post hoc checks on retreats and the hypothesis on the shared revision recipe
 stay exploratory and open. A change of agent or recipe would be a new deviation (DEV-2) and a new validation, and is not part of this study.
 
+**D11. Secondary analysis: non-completion of the task (2026-11-23, after the launch of the final study, before any test result was read).**
+On the validation seeds Agent 2 has fewer irreversible failures than Agent 1 in R2l and R3l, but 94% and 80% of its post-onset episodes
+end in a retreat and only 2% and 20% in a success ([results_validation.md](results_validation.md), sections 4 and 5.1). Decided: the
+verdicts of B and C and the meaning of `failure` (irreversible failure) are unchanged, and a retreat is not called a failure (it is
+reversible and costs damage; a failure ends the episode). A secondary analysis is added next to them: the non-completion rate,
+`1 - success = failure + retreat + timeout`, per regime, with the same paired bootstrap and Holm over the five lethal regimes
+(`scripts/secondary_outcomes.py`, `toyworld/secondary.py`). On the validation seeds it is post hoc, motivated by the artefact found
+there. On the test seeds it is registered here before the summary is read and reported next to the verdicts, as secondary, whatever it
+shows. It decides nothing. Wording to use: under the registered definition (irreversible failure only) Agent 2 has fewer failures in
+R2l and R3l, but the breakdown of outcomes shows that this comes from a systematic retreat (80% to 94% of the episodes), which brings the
+success rate down to 2% to 20%.
+
 **Amendment of the baseline (DEV-1, 2026-11-22).** After the first measurement of D1, the route rule received a safety
 buffer (`margin_frac` 0.7, for every agent). See [protocol_deviations.md](protocol_deviations.md).
