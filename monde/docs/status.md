@@ -59,7 +59,7 @@ Still to define: the identification measure of prediction D, and the time-to-goa
 1. Checklist 2.3 done: D1 met on the 60 validation seeds under DEV-1 (R3c +59%, [agents.md](agents.md), section 11.1).
 2. Agents 1 and 2 are built, tuned and compared on the 50 validation seeds: B and C not supported ([results_validation.md](results_validation.md)). Raw data to archive in
    `archive/2026-11-23_validation_comparison/`.
-3. Next, in order: (a) test-seed mode of `scripts/compare_agents.py` and `scripts/replay_detectors.py`, through `seeds.open_test_seeds` (opens once, 60 seeds); (b) the final run
+3. Next, in order: (a) `scripts/final_study.py` is written and tested (guards, one recorded opening, resume, no interim look; [protocol.md](protocol.md) section 3.7): `plan`, then `run --open`; (b) the final run
    (about 1,200 closed-loop jobs and 480 replay jobs, several hours on 8 cores); (c) the verdicts of B and C on the test seeds, with the same code and rules; (d) the D1 rerun
    (`scripts/run_d1_60.sh`) only to fill the reference rows of the harmful regimes in the tables.
 4. Stage 1 of the checklist; then validation beyond the toy world.

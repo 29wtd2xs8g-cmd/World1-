@@ -141,4 +141,5 @@ def verdict_c(contrasts):
 
 
 def complete_seeds(replay, seeds=COMPARISON_SEEDS):
+    """The seeds of `seeds` that have every regime in the replay."""
     return [s for s in seeds if all((g, s) in replay for g in REPLAY_REGIMES)]

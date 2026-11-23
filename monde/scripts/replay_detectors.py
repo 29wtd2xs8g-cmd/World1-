@@ -21,7 +21,8 @@ from pathlib import Path
 import numpy as np
 
 from toyworld.adaptive import run_agent
-from toyworld.compare import AGENTS, COMPARISON_SEEDS, HARMFUL, load_runs, load_thresholds, require_d9_recorded
+from toyworld.compare import (AGENTS, COMPARISON_SEEDS, HARMFUL, load_runs, load_thresholds, require_complete,
+                              require_d9_recorded)
 from toyworld.detectors import Recorder
 from toyworld.model import WorldModel
 from toyworld.nominal import FALSE_ALARM_RATES, NominalReference, model_hash
@@ -46,23 +47,24 @@ def _job(args):
     return {"regime": regime, "seed": seed, **replay_run(rows, rec.episodes, REF)}
 
 
-def run(path, workers=2, n_seeds=50):
+def run(path, workers=2, seeds=COMPARISON_SEEDS, out=OUT):
+    """Plays the frozen agent for every (regime, seed) of `seeds` that `out` does not hold yet. The validation seeds are the
+    default; the final study (`scripts/final_study.py`) passes its own seeds and file."""
     if NominalReference.load().model_sha256 != model_hash(path):
         sys.exit("the nominal reference was computed on another model")
-    seeds = COMPARISON_SEEDS[:n_seeds]
-    done = {(r["regime"], r["seed"]) for r in map(json.loads, OUT.read_text().splitlines())} if OUT.exists() else set()
+    done = {(r["regime"], r["seed"]) for r in map(json.loads, out.read_text().splitlines())} if out.exists() else set()
     jobs = [(g, s) for s in seeds for g in REPLAY_REGIMES if (g, s) not in done]
-    OUT.parent.mkdir(exist_ok=True)
-    with mp.Pool(workers, initializer=_init, initargs=(path,)) as pool, open(OUT, "a") as f:
+    out.parent.mkdir(exist_ok=True)
+    with mp.Pool(workers, initializer=_init, initargs=(path,)) as pool, open(out, "a") as f:
         for res in pool.imap_unordered(_job, jobs, chunksize=1):
             f.write(json.dumps(res) + "\n")
             f.flush()
             print("done", res["regime"], res["seed"], flush=True)
 
 
-def check():
-    """Consistency of the replay with the closed-loop runs. Reads no outcome of the comparison."""
-    replay, runs = load_replay(OUT), load_runs(COMPARE)
+def check(replay_path=OUT, compare_path=COMPARE):
+    """Consistency of the replay with the closed-loop runs. Prints counts only, no outcome of the comparison."""
+    replay, runs = load_replay(replay_path), load_runs(compare_path)
     th = load_thresholds()
     ref = NominalReference.load()
     level = {a: grid(ref)[a].index(th[a]) for a in AGENTS}            # the tuned thresholds are grid values
@@ -88,13 +90,19 @@ def _fmt(g):
     return f"{g['value']:+7.1f} [{g['lo']:+7.1f}, {g['hi']:+7.1f}]"
 
 
-def summary():
+def summary(replay_path=OUT, required=None):
+    """`required`: number of seeds the study must have completed (the final study: all of them, or nothing is printed)."""
     try:
         require_d9_recorded()
     except RuntimeError as e:
         sys.exit(str(e))
-    replay = load_replay(OUT)
-    seeds = complete_seeds(replay)
+    replay = load_replay(replay_path)
+    seeds = complete_seeds(replay, sorted({s for (_, s) in replay}))
+    if required is not None:
+        try:
+            require_complete(seeds, required)
+        except RuntimeError as e:
+            sys.exit(str(e))
     if not seeds:
         sys.exit("no complete seed yet: run `replay_detectors.py run` first")
     print(f"{len(seeds)} paired comparison seeds; frozen trajectories; bootstrap {BOOTSTRAP_REPS} replications\n")
@@ -130,7 +138,7 @@ def summary():
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "run":
-        run(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 2, int(sys.argv[4]) if len(sys.argv) > 4 else 50)
+        run(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 2, COMPARISON_SEEDS[:int(sys.argv[4]) if len(sys.argv) > 4 else 50])
     elif cmd == "check":
         check()
     elif cmd == "summary":

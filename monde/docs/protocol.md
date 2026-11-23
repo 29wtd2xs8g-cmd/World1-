@@ -120,3 +120,22 @@ reported as descriptive; they do not decide C.
 
 **Aggregation.** `Ccum` and the outcome rates are averaged over all episodes from the onset (R0: all episodes), one value per seed;
 seeds are the unit of the paired bootstrap.
+
+## 3.7 Procedure of the final study
+
+Decision D10 ([research.md](research.md)): the confirmatory study runs on the 60 test seeds with the agents, the tuned thresholds, the
+revision recipe and the rules of section 3.6 exactly as they were on the validation seeds. `scripts/final_study.py` is the only
+script that reaches the test seeds, through `seeds.test_seeds_for_study`.
+
+- **One opening, recorded.** The first `run` (with `--open`) writes one line in `protocol/test_seed_ledger.jsonl`. Its purpose
+  contains the short hashes of the model, of `protocol/trigger_thresholds.json` and of `protocol/nominal_reference.json`, so the
+  ledger shows what was frozen when the seeds were opened. A relaunch after an interruption resumes the same study, with no second
+  line; a changed model, threshold or reference cannot resume (it would be another study, and the seeds are spent).
+- **Guards before opening.** D9 and D10 recorded, nominal reference computed on the model, both agents tuned once under one budget.
+  `final_study.py plan` shows them without opening anything.
+- **No interim look.** `check` prints counts only. `summary` prints nothing until all 60 seeds have every job; the verdicts of B and C
+  are read once, on the complete data.
+- **What is run.** The closed-loop comparison (1,200 jobs, `results/test_compare.jsonl`) and the frozen-trajectory replay (480 jobs,
+  `results/test_replay.jsonl`). The frozen reference of the harmful regimes is the frozen agent of the replay.
+- **Reported whatever the result.** The verdicts of B and C, the tables of outcomes and the replay curves are published next to the
+  validation record ([results_validation.md](results_validation.md)); the post hoc analyses of that record stay labelled exploratory.

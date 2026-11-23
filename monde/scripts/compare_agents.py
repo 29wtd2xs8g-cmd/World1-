@@ -21,16 +21,18 @@ import numpy as np
 
 from toyworld.adaptive import run_agent
 from toyworld.compare import (AGENTS, B_REGIMES, COMPARISON_SEEDS, HARMFUL, REGIMES, calm_false_alarm_gap, contrast,
-                              holm_adjust, load_runs, load_thresholds, make_trigger, require_d9_recorded, seed_vectors,
-                              verdict_b)
+                              holm_adjust, load_runs, load_thresholds, make_trigger, require_complete, require_d9_recorded,
+                              seed_vectors, verdict_b)
 from toyworld.metrics import LETHAL, family
 from toyworld.model import WorldModel
 from toyworld.nominal import NominalReference, model_hash
+from toyworld.replay import load_replay
 from toyworld.seeds import BOOTSTRAP_REPS
 from toyworld.triggers import AlwaysTrigger, NeverTrigger
 
 OUT = Path("results/compare.jsonl")
 REFS = Path("results/headroom_rho0.7.jsonl")
+REPLAY = Path("results/replay.jsonl")
 MODEL = REF = TH = None
 
 
@@ -46,17 +48,18 @@ def _job(args):
     return {"kind": kind, "regime": regime, "seed": seed, "rows": run_agent(regime, seed, MODEL, trig)}
 
 
-def run(path, workers=2, n_seeds=50):
+def run(path, workers=2, seeds=COMPARISON_SEEDS, out=OUT):
+    """Plays every job of `seeds` that `out` does not hold yet. The validation seeds are the default; the final study
+    (`scripts/final_study.py`) passes its own seeds and file."""
     ref = NominalReference.load()
     if ref.model_sha256 != model_hash(path):
         sys.exit("the nominal reference was computed on another model")
     load_thresholds()                                           # fails here, before any compute, if untuned
-    seeds = COMPARISON_SEEDS[:n_seeds]
-    done = {(r["kind"], r["regime"], r["seed"]) for r in map(json.loads, OUT.read_text().splitlines())} if OUT.exists() else set()
+    done = {(r["kind"], r["regime"], r["seed"]) for r in map(json.loads, out.read_text().splitlines())} if out.exists() else set()
     jobs = [(k, g, s) for s in seeds for g in REGIMES for k in AGENTS if (k, g, s) not in done]
     jobs += [(k, g, s) for s in seeds for g in ("R0", "R1") for k in ("frozen", "always") if (k, g, s) not in done]
-    OUT.parent.mkdir(exist_ok=True)
-    with mp.Pool(workers, initializer=_init, initargs=(path,)) as pool, open(OUT, "a") as f:
+    out.parent.mkdir(exist_ok=True)
+    with mp.Pool(workers, initializer=_init, initargs=(path,)) as pool, open(out, "a") as f:
         for res in pool.imap_unordered(_job, jobs, chunksize=1):
             f.write(json.dumps(res) + "\n")
             f.flush()
@@ -68,15 +71,23 @@ def _fmt(c, key):
     return f"{g['value']:+7.3f} [{g['lo']:+7.3f}, {g['hi']:+7.3f}]"
 
 
-def summary(refs=REFS):
+def summary(out=OUT, refs=REFS, replay=REPLAY, required=None):
+    """`required`: number of seeds the study must have completed (the final study: all of them, or nothing is printed)."""
     try:
         require_d9_recorded()
     except RuntimeError as e:
         sys.exit(str(e))
-    runs = load_runs(OUT)
-    for k, v in load_runs(refs).items():
+    runs = load_runs(out)
+    for k, v in (load_runs(refs) if refs else {}).items():
         runs.setdefault(k, v)
-    seeds = [s for s in COMPARISON_SEEDS if all((a, g, s) in runs for a in AGENTS for g in REGIMES)]
+    for (g, s), entry in (load_replay(replay) if replay else {}).items():      # the frozen agent of the replay is the frozen reference
+        runs.setdefault(("frozen", g, s), entry["rows"])
+    seeds = sorted({s for (_, _, s) in runs if all((a, g, s) in runs for a in AGENTS for g in REGIMES)})
+    if required is not None:
+        try:
+            require_complete(seeds, required)
+        except RuntimeError as e:
+            sys.exit(str(e))
     if not seeds:
         sys.exit("no complete seed yet: run `compare_agents.py run` first")
     print(f"{len(seeds)} paired comparison seeds; bootstrap {BOOTSTRAP_REPS} replications; post-onset episodes\n")
@@ -127,8 +138,8 @@ def summary(refs=REFS):
 if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "run":
-        run(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 2, int(sys.argv[4]) if len(sys.argv) > 4 else 50)
+        run(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 2, COMPARISON_SEEDS[:int(sys.argv[4]) if len(sys.argv) > 4 else 50])
     elif cmd == "summary":
-        summary(Path(sys.argv[2]) if len(sys.argv) > 2 else REFS)
+        summary(refs=Path(sys.argv[2]) if len(sys.argv) > 2 else REFS)
     else:
         sys.exit(__doc__)

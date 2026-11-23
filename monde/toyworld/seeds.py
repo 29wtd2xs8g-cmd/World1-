@@ -32,3 +32,24 @@ def open_test_seeds(purpose: str):
     with open(TEST_SEED_LEDGER, "a") as f:
         f.write(json.dumps({"date": date.today().isoformat(), "purpose": purpose, "seeds": [TEST_SEEDS[0], TEST_SEEDS[-1]]}) + "\n")
     return TEST_SEEDS
+
+
+def _ledger_entries():
+    if not TEST_SEED_LEDGER.exists():
+        return []
+    return [json.loads(l) for l in TEST_SEED_LEDGER.read_text().splitlines() if l.strip()]
+
+
+def resume_test_seeds(purpose: str):
+    """Reads the test seeds again for the study that already opened them (a relaunch after an interruption, the second script
+    of the same study). It writes nothing, and only works when the ledger holds exactly one entry with this very purpose: the
+    purpose names the model, the thresholds and the nominal reference, so a changed agent cannot resume."""
+    entries = _ledger_entries()
+    if len(entries) != 1 or entries[0]["purpose"] != purpose:
+        raise PermissionError("the test seeds were not opened for this study (protocol/test_seed_ledger.jsonl)")
+    return TEST_SEEDS
+
+
+def test_seeds_for_study(purpose: str):
+    """Opens the test seeds if the ledger is empty, resumes them for the same study otherwise."""
+    return open_test_seeds(purpose) if not _ledger_entries() else resume_test_seeds(purpose)

@@ -380,5 +380,8 @@ never triggers a retreat or a revision in it, which the closed-loop runs do.
 
 **Results on the validation seeds:** [results_validation.md](results_validation.md).
 
+**Final study on the test seeds** (decision D10, [protocol.md](protocol.md) section 3.7): `scripts/final_study.py` (`plan`, `run --open`, `check`, `summary`) runs the same
+jobs on the 60 test seeds with the same code and rules, through the ledger-guarded door `seeds.test_seeds_for_study`; `tests/test_final_study.py`.
+
 Predictions A (resources), D (identification) and E (recovering the goal) are not computed by this script.
 

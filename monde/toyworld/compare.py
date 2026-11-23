@@ -13,13 +13,16 @@ import numpy as np
 
 from .detectors import CusumTrigger, HarmExcessTrigger
 from .metrics import detection, false_alarms, holm, outcome_table, paired_bootstrap_stat, post_tau
-from .nominal import NominalReference
+from .nominal import REFERENCE, NominalReference, model_hash
 from .seeds import VALIDATION_SEEDS
 from .tuning import BUDGET, LEDGER, check_equal_budgets
 
 THRESHOLDS = Path(__file__).resolve().parent.parent / "protocol" / "trigger_thresholds.json"
 PROTOCOL = Path(__file__).resolve().parent.parent / "docs" / "protocol.md"
+RESEARCH = Path(__file__).resolve().parent.parent / "docs" / "research.md"
 D9_MARKER = "D9-STATUS: RECORDED"
+D10_MARKER = "**D10. Confirmatory study on the test seeds, nothing changed"
+STUDY_NAME = "final study: Agent 1 against Agent 2 on the test seeds (rules D9, decision D10)"
 COMPARISON_SEEDS = tuple(s for s in VALIDATION_SEEDS if s not in BUDGET.seeds)      # 50 seeds
 REGIMES = ("R0", "R1", "R2d", "R2c", "R2l", "R3d", "R3c", "R3l")
 HARMFUL = ("R2d", "R2c", "R2l", "R3d", "R3c", "R3l")
@@ -49,6 +52,26 @@ def require_d9_recorded(path=PROTOCOL):
     path = Path(path)
     if not path.exists() or D9_MARKER not in path.read_text():
         raise RuntimeError("decision D9 is not recorded in docs/protocol.md (section 3.6): no summary before it is")
+
+
+def require_d10_recorded(path=RESEARCH):
+    """The final study is decided (D10) in docs/research.md before the test seeds are opened."""
+    path = Path(path)
+    if not path.exists() or D10_MARKER not in path.read_text():
+        raise RuntimeError("decision D10 is not recorded in docs/research.md: the test seeds stay closed")
+
+
+def study_purpose(model_path, thresholds_path=THRESHOLDS, reference_path=REFERENCE):
+    """The text written in the test-seed ledger. It names the model, the tuned thresholds and the nominal reference the study
+    runs with (short hashes), so that the ledger shows what was frozen when the test seeds were opened."""
+    return (f"{STUDY_NAME}; model {model_hash(model_path)}; thresholds {model_hash(thresholds_path)}; "
+            f"nominal reference {model_hash(reference_path)}")
+
+
+def require_complete(seeds_found, required):
+    """The final study is read once, on all its seeds: no interim look at partial results (it would be optional stopping)."""
+    if len(seeds_found) != required:
+        raise RuntimeError(f"incomplete: {len(seeds_found)} of {required} seeds have every job; no result is printed before the end")
 
 
 def make_trigger(agent, thresholds, ref: NominalReference):
