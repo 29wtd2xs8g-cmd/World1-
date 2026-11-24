@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this code or the archived results, please cite it as below."
+title: "toyworld: testbed and pre-registered comparison of a harm-coupled alert and a prediction-error CUSUM"
+type: software
+version: "1.0-paper"
+date-released: 2026-11-24
+license: MIT
+repository-code: "https://github.com/29wtd2xs8g-cmd/World1-"
+authors:
+  - family-names: "Jouan"
+    given-names: "Alphonse"
+    affiliation: "MSc in Cognitive Science (Cog-SUP), Sorbonne Université and Université Paris-Cité, Paris, France"
+abstract: >-
+  A toy navigation world with hidden drift and irreversible damage, the code of two
+  revision triggers (a harm-coupled alert and a CUSUM on prediction error), the frozen
+  pre-registration protocol and ledgers, and the raw results of the final study on the test
+  seeds. Companion of the paper "When Should a Continual World Model Revise Itself?
+  Margin-Coupled Nociceptive Alerts vs. Prediction Error".
+keywords:
+  - continual world models
+  - change detection
+  - CUSUM
+  - safe reinforcement learning
+  - nociception
+  - pre-registration
+  - negative result
+doi: 10.5281/zenodo.24502320

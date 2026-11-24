@@ -47,12 +47,12 @@ EPISODES_SINCE_ONSET = 10         # every seed has at least this many post-onset
 HEADROOM_FAILURE = {"R2d": (0.65, 0.36, 0.60), "R2c": (1.00, 0.00, 0.17), "R2l": (0.80, 0.01, 0.48),
                     "R3c": (0.14, 0.00, 0.01), "R3l": (0.49, 0.00, 0.16)}
 
-# Colours: the two agents carry identity (validated as a categorical pair, scripts/validate_palette.js of the dataviz method);
+# Colours: the two agents are a dark red (Agent 1) and a dark blue (Agent 2) pair, separated by hue (colour-blind delta E 18.8 on protan);
 # outcomes use the fixed status colours and are also named by a legend, printed values and a hatch on failures.
-AGENT_COLOR = {"agent1_alert": "#B84A22", "agent2_cusum": "#2A76C2"}
+AGENT_COLOR = {"agent1_alert": "#9B1C1C", "agent2_cusum": "#1F3A8A"}
 AGENT_NAME = {"agent1_alert": "Agent 1 (alert)", "agent2_cusum": "Agent 2 (prediction error)"}
 AGENT_SHORT = {"agent1_alert": "Agent 1", "agent2_cusum": "Agent 2"}
-OUTCOME_COLOR = {"success": "#0CA30C", "retreat": "#C3C2B7", "timeout": "#FAB219", "failure": "#D03B3B"}
+OUTCOME_COLOR = {"success": "#0CA30C", "retreat": "#C3C2B7", "timeout": "#6F6F66", "failure": "#D03B3B"}
 OUTCOME_ORDER = ("failure", "retreat", "timeout", "success")      # failure on the baseline: the rate to compare
 INK, INK2, MUTED, GRID, AXIS, SURFACE = "#0B0B0B", "#52514E", "#898781", "#E1E0D9", "#C3C2B7", "#FCFCFB"
 
@@ -111,7 +111,7 @@ def fig1_outcomes(runs, seeds, note):
                     ax.text(left + w / 2, y, f"{100 * w:.0f}", ha="center", va="center", fontsize=8, fontweight="bold",
                             color="#FFFFFF" if o in ("failure", "success") else INK)
                 left += w
-            ax.text(-0.015, y, AGENT_SHORT[kind], ha="right", va="center", fontsize=8, color=AGENT_COLOR[kind],
+            ax.text(-0.015, y, AGENT_SHORT[kind], ha="right", va="center", fontsize=8, color=INK,
                     fontweight="bold", transform=ax.get_yaxis_transform())
             ys.append(y)
             y += 1.0

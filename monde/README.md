@@ -2,10 +2,17 @@
 
 A continuous, noisy, nonlinear toy world with **hidden drift** and **graded, irreversible damage**.
 It is the testbed (checklist, stage 0, section 1) of a research project on *what should trigger the
-revision of a world model*. The trigger agents under study are not in this repository yet: it contains
-the world, the three drift mechanisms, the regime grid, the ground-truth journal, a competent baseline
-agent (learned world model plus planner), the common trigger interface with its two limit triggers
-(never, always), model revision by fine-tuning, an oracle reference, and the tests that verify them.
+revision of a world model*. The repository holds the world, the three drift mechanisms, the regime
+grid, the ground-truth journal, a competent baseline agent (learned world model plus planner), the
+common trigger interface with its limit triggers (never, always), the two agents under study
+(Agent 1, a harm-coupled alert; Agent 2, a CUSUM on prediction error), model revision by
+fine-tuning, an oracle reference, the pre-registered protocol and its ledgers, the archived data of
+the final study, and the tests that verify all of it.
+
+**Status.** The final study on the test seeds is done and its seeds are spent. Predictions B and C
+are not supported; the secondary analysis D11 shows that Agent 1 completes the task more often
+(a trade-off, not a ranking). See [docs/results_final.md](docs/results_final.md). Any further
+analysis of these seeds is exploratory, and a new study needs fresh seeds and a new pre-registration.
 
 ## The research in one paragraph
 
